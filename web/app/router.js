@@ -11,6 +11,7 @@ Router.map(function() {
     this.route('new');
     this.route('view', { path: '/:id' });
   });
+  this.route('home', { path: '/'});
 });
 
 export default Router;

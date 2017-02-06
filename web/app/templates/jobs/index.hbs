@@ -14,26 +14,28 @@
   </thead>
   <tbody>
   {{#each model as |job|}}
-    <tr>
-      <td>{{job.id}}</td>
-      <td>
-        {{#if (eq job.percentage 100)}}
-          {{#link-to "jobs.view" job.id}}{{job.name}}{{/link-to}}
-        {{else}}
-          {{job.name}}
-        {{/if}}
-      </td>
-      <td>{{moment-from-now job.createdAt date}}</td>
-      <td>
-        {{#if (eq job.percentage 100)}}
-          Done
-        {{else}}
-          {{#bs-progress as |p|}}
-            {{p.bar value=job.percentage showLabel=true striped=true animate=true}}
-          {{/bs-progress}}
-        {{/if}}
-      </td>
-    </tr>
+    {{#if job.id}}
+      <tr>
+        <td>{{job.id}}</td>
+        <td>
+          {{#if (eq job.percentage 100)}}
+            {{#link-to "jobs.view" job.id}}{{job.name}}{{/link-to}}
+          {{else}}
+            {{job.name}}
+          {{/if}}
+        </td>
+        <td>{{moment-from-now job.createdAt}}</td>
+        <td>
+          {{#if (eq job.percentage 100)}}
+            Done
+          {{else}}
+            {{#bs-progress as |p|}}
+              {{p.bar value=job.percentage showLabel=true striped=true animate=true}}
+            {{/bs-progress}}
+          {{/if}}
+        </td>
+      </tr>
+    {{/if}}
   {{/each}}
   </tbody>
 </table>
