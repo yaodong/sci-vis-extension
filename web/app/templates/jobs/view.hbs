@@ -1,0 +1,27 @@
+<div class="row stage-header">
+  <div class="col-sm-6 stage-title">#{{model.id}}</div>
+  <div class="col-sm-6 text-right">{{#link-to "jobs.index" class="btn btn-default"}}Back to List{{/link-to}}</div>
+</div>
+
+<table class="table table-bordered table-hover">
+  <thead>
+  <tr>
+    <th>Info</th>
+    <th>Best Projection</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>Name: {{model.name}}</td>
+    <td>
+      {{#with model.outputs.best_projection as |best|}}
+        <p>z -> x: {{best.[0]}}&deg;</p>
+        <p>z -> y: {{best.[1]}}&deg;</p>
+        <p>distance: {{best.[2]}}</p>
+      {{/with}}
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+{{distance-table outputs=model.outputs}}

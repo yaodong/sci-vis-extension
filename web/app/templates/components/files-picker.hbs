@@ -1,0 +1,16 @@
+<script type="text/javascript" src="//api.filestackapi.com/filestack.js"></script>
+<script>
+  function setURL(file) {
+    $("#files-picker-name").text(file.filename);
+    $("#files-picker-id").val(file.url.split("/").pop());
+  }
+</script>
+
+<span id="files-picker-name"></span>
+<input id="files-picker-id" name="file" value="" class="hide">
+<input type="filepicker"
+       data-fp-apikey="AWPOg9H9eRiKlGign4px8z"
+       data-fp-mimetypes="text/csv"
+       data-fp-container="modal"
+       data-fp-maxsize="50000000"
+       onchange="setURL(event.fpfile)" />

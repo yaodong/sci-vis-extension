@@ -1,0 +1,25 @@
+<div class="row stage-header">
+  <div class="col-sm-6 stage-title">Start new Job</div>
+  <div class="col-sm-6 text-right">{{#link-to "jobs.index" class="btn btn-default"}}Back to List{{/link-to}}</div>
+</div>
+
+<form id="jobs-new-form" method="post" {{action "submit" on="submit"}}>
+  {{#form-group errors=model.errors.name label="Name"}}
+    {{input type="text" name="name" value=model.name class="form-control"}}
+  {{/form-group}}
+
+  {{#form-group errors=uploadErrors label="Input File"}}
+    {{files-picker}}
+  {{/form-group}}
+
+  {{#form-group label="Method"}}
+    <div class="radio">
+      <label>
+        <input type="radio" name="method" value="best-direction" checked>
+        find the best projection direction
+      </label>
+    </div>
+  {{/form-group}}
+
+  <button type="submit" class="btn btn-success">Submit</button>
+</form>

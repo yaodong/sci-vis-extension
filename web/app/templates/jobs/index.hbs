@@ -1,0 +1,39 @@
+<div class="row stage-header">
+  <div class="col-sm-6 stage-title">All Jobs</div>
+  <div class="col-sm-6 text-right">{{#link-to "jobs.new" class="btn btn-default"}}Start New{{/link-to}}</div>
+</div>
+
+<table class="table table-striped table-hover">
+  <thead>
+  <tr>
+    <th width="50">#</th>
+    <th>Name</th>
+    <th>Created At</th>
+    <th>Status</th>
+  </tr>
+  </thead>
+  <tbody>
+  {{#each model as |job|}}
+    <tr>
+      <td>{{job.id}}</td>
+      <td>
+        {{#if (eq job.percentage 100)}}
+          {{#link-to "jobs.view" job.id}}{{job.name}}{{/link-to}}
+        {{else}}
+          {{job.name}}
+        {{/if}}
+      </td>
+      <td>{{moment-from-now job.createdAt date}}</td>
+      <td>
+        {{#if (eq job.percentage 100)}}
+          Done
+        {{else}}
+          {{#bs-progress as |p|}}
+            {{p.bar value=job.percentage showLabel=true striped=true animate=true}}
+          {{/bs-progress}}
+        {{/if}}
+      </td>
+    </tr>
+  {{/each}}
+  </tbody>
+</table>

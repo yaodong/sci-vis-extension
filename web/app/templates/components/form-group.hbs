@@ -1,0 +1,5 @@
+<div class="form-group {{if errors "has-error" ""}}">
+  <label>{{label}}</label>
+  {{yield}}
+  {{form-field-errors errors=errors}}
+</div>
