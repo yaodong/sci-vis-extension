@@ -5,6 +5,7 @@ export default DS.Model.extend({
   method: DS.attr('string'),
   inputs: DS.attr(),
   outputs: DS.attr(),
+  ticket: DS.attr('string'),
   startedAt: DS.attr('date'),
   createdAt: DS.attr('date'),
   completedAt: DS.attr('date'),

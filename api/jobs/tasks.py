@@ -2,7 +2,6 @@ from os import path, mkdir, chdir, listdir
 from celery import shared_task
 from singer.settings import BASE_DIR
 from math import sin, cos, pi
-from datetime import datetime
 
 
 def rotate(row, angle, dim1, dim2):
@@ -18,18 +17,23 @@ def rotate(row, angle, dim1, dim2):
 def create_job(instance_id):
     from subprocess import Popen, PIPE
     from jobs.models import Job
+    from django.utils import timezone
     import time
     import requests
 
     job = Job.objects.get(pk=instance_id)
-    job.started_at = datetime.now()
+    job.started_at = timezone.now()
     job.save(update_fields=['started_at'])
 
     file_id = job.inputs['file']
     file_meta_url = 'https://www.filestackapi.com/api/file/%s/metadata' % file_id
     file_download_url = 'https://www.filestackapi.com/api/file/%s?dl=true' % file_id
-    dir_id = '%s_%s' % (job.id, time.time())
-    job_dir = path.join(BASE_DIR, 'tmp', dir_id)
+    dir_id = '%s_%s' % (job.id, int(time.time()))
+
+    job.ticket = dir_id
+    job.save(update_fields=['ticket'])
+
+    job_dir = path.join(BASE_DIR, 'static', 'jobs', dir_id)
 
     meta_data = requests.get(file_meta_url).json()
     if meta_data['mimetype'] != 'text/csv':
@@ -85,7 +89,7 @@ def create_job(instance_id):
 
     job.percentage = 95
     job.status = p.returncode
-    job.completed_at = datetime.now()
+    job.completed_at = timezone.now()
     job.save(update_fields=['percentage', 'status', 'completed_at'])
 
     # find best projection direction
@@ -98,8 +102,8 @@ def create_job(instance_id):
 
     job.percentage = 100
     job.outputs = {
-        'best_projection': min(results, key=lambda p: p[2]),
-        'worst_projection': max(results, key=lambda p: p[2]),
+        'best_projection': min(results, key=lambda item: item[2]),
+        'worst_projection': max(results, key=lambda item: item[2]),
         'bottleneck_distances': results,
     }
     job.save()
@@ -108,8 +112,6 @@ def create_job(instance_id):
 @shared_task()
 def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     import matplotlib.pyplot as plt
-    import matplotlib
-    matplotlib.use('Qt5Agg')
     plt.axis('equal')
 
     fig = plt.figure()
