@@ -11,6 +11,9 @@ base_data <- read.csv(paste("../static/jobs/", dirname ,"/base.csv", sep=""), he
 base_matrix = cbind(base_data[,1], base_data[,2], base_data[,3])
 base_diag = ripsDiag(base_matrix, maxdimension, maxscale, library = "GUDHI")
 
+rm("base_data")
+rm("base_matrix")
+
 phi_range = seq(-90, 85, by=5)
 theta_range = seq(-90, 85, by=5)
 
@@ -25,5 +28,8 @@ for (zx_angle in phi_range) {
 
         bottleneckDist <- bottleneck(base_diag[["diagram"]], projection_diag[["diagram"]], dimension = 1)
         write(bottleneckDist, file = result_file)
+        rm("projection_matrix")
+        rm("projection_data")
+        rm("projection_diag")
     }
 }

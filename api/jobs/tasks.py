@@ -126,3 +126,4 @@ def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     ax.set_ylabel('Y')
 
     plt.savefig(path.join(preview_dir, '%s__%s.png' % (zx_angle, zy_angle)))
+    plt.close()
