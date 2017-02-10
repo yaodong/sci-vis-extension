@@ -45,7 +45,7 @@ export default Ember.Component.extend({
       height = +svg.attr("height"),
       domainWidth = width - margin.left - margin.right,
       domainHeight = height - margin.top - margin.bottom,
-      domain = [-90, 85],
+      domain = [-90, 90],
       minDistance = this.get('outputs.best_projection')[2],
       maxDistance = this.get('outputs.worst_projection')[2],
       range = maxDistance - minDistance;
@@ -60,9 +60,13 @@ export default Ember.Component.extend({
       .attr("fill", "#FFF");
 
     const data = $.map(this.get('outputs.bottleneck_distances'), function (d) {
+      let zx_angle = d[0];
+      let zy_angle = d[1];
+      let circleLevel = Math.abs(zy_angle) / 5 + 1;
       return {
-        zx: d[0],
-        zy: d[1],
+        circleLevel: circleLevel,
+        zx: zy_angle * Math.cos(zx_angle / 180 * Math.PI),
+        zy: zy_angle * Math.sin(zx_angle / 180 * Math.PI),
         dis: d[2],
       };
     });
@@ -80,7 +84,10 @@ export default Ember.Component.extend({
     };
 
     $("#svg-wrapper").hover(null, function () {
-      g.selectAll(".dot").attr("r", baseR).attr("stroke", borderColor);
+      g.selectAll(".dot")
+        .attr("r", baseR)
+        .attr("stroke-dasharray", null)
+        .attr("stroke", borderColor);
     });
 
     const onMouseMove = function (target) {
@@ -96,7 +103,7 @@ export default Ember.Component.extend({
 
       g.selectAll(".dot")
         .attr("r", baseR)
-        .attr("stroke-dasharray", 0)
+        .attr("stroke-dasharray", null)
         .attr("stroke", borderColor);
 
       let absR = Math.max(absX, absY);
@@ -122,7 +129,7 @@ export default Ember.Component.extend({
       }
 
       g.select("circle.dot[data-zx='" + zxValue + "'][data-zy='" + zyValue + "']")
-        .attr("stroke-dasharray", 0)
+        .attr("stroke-dasharray", null)
         .attr("stroke", borderHoverColor);
     };
 
@@ -130,7 +137,9 @@ export default Ember.Component.extend({
       .data(data)
       .enter().append("circle")
       .attr("class", "dot")
-      .attr("r", baseR)
+      .attr("r", function(d) {
+        return baseR;//d.circleLevel;
+      })
       .attr("stroke", borderColor)
       .attr("data-dis", function (d) {
         return d.dis;
@@ -155,7 +164,7 @@ export default Ember.Component.extend({
       })
       .style("cursor", "pointer")
       .on("mouseover", function () {
-        onMouseMove(this);
+        // onMouseMove(this);
         return tooltip
           .style("visibility", "visible")
           .text($(this).data('dis'));
