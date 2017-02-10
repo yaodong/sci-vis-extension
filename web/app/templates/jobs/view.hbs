@@ -12,7 +12,11 @@
   </thead>
   <tbody>
   <tr>
-    <td>Name: {{model.name}}</td>
+    <td>
+      <ul>
+        <li><strong>Name</strong>{{model.name}}</li>
+      </ul>
+    </td>
     <td>
       {{#with model.outputs.best_projection as |best|}}
         <p>z -> x: {{best.[0]}}&deg;</p>
