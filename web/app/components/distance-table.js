@@ -2,6 +2,87 @@ import Ember from 'ember';
 const $ = Ember.$;
 const d3 = window.d3;
 
+// Version 0.0.0. Copyright 2017 Mike Bostock.
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+      (global.versor = factory());
+}(window, (function () {
+  'use strict';
+
+  var acos = Math.acos,
+    asin = Math.asin,
+    atan2 = Math.atan2,
+    cos = Math.cos,
+    max = Math.max,
+    min = Math.min,
+    PI = Math.PI,
+    sin = Math.sin,
+    sqrt = Math.sqrt,
+    radians = PI / 180,
+    degrees = 180 / PI;
+
+// Returns the unit quaternion for the given Euler rotation angles [λ, φ, γ].
+  function versor(e) {
+    var l = e[0] / 2 * radians, sl = sin(l), cl = cos(l), // λ / 2
+      p = e[1] / 2 * radians, sp = sin(p), cp = cos(p), // φ / 2
+      g = e[2] / 2 * radians, sg = sin(g), cg = cos(g); // γ / 2
+    return [
+      cl * cp * cg + sl * sp * sg,
+      sl * cp * cg - cl * sp * sg,
+      cl * sp * cg + sl * cp * sg,
+      cl * cp * sg - sl * sp * cg
+    ];
+  }
+
+// Returns Cartesian coordinates [x, y, z] given spherical coordinates [λ, φ].
+  versor.cartesian = function (e) {
+    var l = e[0] * radians, p = e[1] * radians, cp = cos(p);
+    return [cp * cos(l), cp * sin(l), sin(p)];
+  };
+
+// Returns the Euler rotation angles [λ, φ, γ] for the given quaternion.
+  versor.rotation = function (q) {
+    return [
+      atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * degrees,
+      asin(max(-1, min(1, 2 * (q[0] * q[2] - q[3] * q[1])))) * degrees,
+      atan2(2 * (q[0] * q[3] + q[1] * q[2]), 1 - 2 * (q[2] * q[2] + q[3] * q[3])) * degrees
+    ];
+  };
+
+// Returns the quaternion to rotate between two cartesian points on the sphere.
+  versor.delta = function (v0, v1) {
+    var w = cross(v0, v1), l = sqrt(dot(w, w));
+    if (!l) return [1, 0, 0, 0];
+    var t = acos(max(-1, min(1, dot(v0, v1)))) / 2, s = sin(t); // t = θ / 2
+    return [cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
+  };
+
+// Returns the quaternion that represents q0 * q1.
+  versor.multiply = function (q0, q1) {
+    return [
+      q0[0] * q1[0] - q0[1] * q1[1] - q0[2] * q1[2] - q0[3] * q1[3],
+      q0[0] * q1[1] + q0[1] * q1[0] + q0[2] * q1[3] - q0[3] * q1[2],
+      q0[0] * q1[2] - q0[1] * q1[3] + q0[2] * q1[0] + q0[3] * q1[1],
+      q0[0] * q1[3] + q0[1] * q1[2] - q0[2] * q1[1] + q0[3] * q1[0]
+    ];
+  };
+
+  function cross(v0, v1) {
+    return [
+      v0[1] * v1[2] - v0[2] * v1[1],
+      v0[2] * v1[0] - v0[0] * v1[2],
+      v0[0] * v1[1] - v0[1] * v1[0]
+    ];
+  }
+
+  function dot(v0, v1) {
+    return v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2];
+  }
+
+  return versor;
+})));
+
 export default Ember.Component.extend({
   colors: [
     "#E1F5FE", // 1
@@ -17,190 +98,89 @@ export default Ember.Component.extend({
     "#8E24AA", // best
   ],
 
+  /**
+   * https://gist.github.com/serdaradali/11346541
+   * https://bl.ocks.org/mbostock/7ea1dde508cec6d2d95306f92642bc42
+   */
   didRender() {
     this._super(...arguments);
 
-    /**
-     * https://bl.ocks.org/alandunning/18c5ec8d06938edd31968e2fd104a58a
-     */
-    const tooltip = d3.select("body")
-      .append("div")
-      .style("position", "absolute")
-      .style("z-index", "10")
-      .style("visibility", "hidden")
-      .style("background", "#FFF")
-      .style("padding", "10px")
-      .style("border", "1px solid #777")
-      .style("border-radius", "3px")
-      .text("");
+    var width = 960,
+      height = 500,
+      rotate = [10, -10],
+      velocity = [.003, -.001],
+      time = Date.now(),
+      sens = 0.25;
 
-    const svg = d3.select("#scatter"),
-      borderColor = "#999",
-      baseR = 6,
-      hoverCircleR = 9,
-      borderCircleColor = "#666",
-      borderHoverColor = "#000",
-      margin = {top: 50, right: 50, bottom: 50, left: 50},
-      width = +svg.attr("width"),
-      height = +svg.attr("height"),
-      domainWidth = width - margin.left - margin.right,
-      domainHeight = height - margin.top - margin.bottom,
-      domain = [-90, 90],
-      minDistance = this.get('outputs.best_projection')[2],
-      maxDistance = this.get('outputs.worst_projection')[2],
-      range = maxDistance - minDistance;
+    var projection = d3.geoOrthographic()
+      .scale(240)
+      .translate([width / 2, height / 2])
+      .clipAngle(90 + 1e-6)
+      .precision(.3);
 
-    const zx = d3.scaleLinear().domain(domain).range([0, domainWidth]);
-    const zy = d3.scaleLinear().domain(domain).range([0, domainHeight]);
-    const g = svg.append("g").attr("transform", "translate(" + margin.top + "," + margin.top + ")");
+    var path = d3.geoPath()
+      .projection(projection);
 
-    g.append("rect")
-      .attr("width", width - margin.left - margin.right)
-      .attr("height", height - margin.top - margin.bottom)
-      .attr("fill", "#FFF");
+    var graticule = d3.geoGraticule();
 
-    const data = $.map(this.get('outputs.bottleneck_distances'), function (d) {
-      let zx_angle = d[0];
-      let zy_angle = d[1];
-      let circleLevel = Math.abs(zy_angle) / 5 + 1;
-      return {
-        circleLevel: circleLevel,
-        zx: zy_angle * Math.cos(zx_angle / 180 * Math.PI),
-        zy: zy_angle * Math.sin(zx_angle / 180 * Math.PI),
-        dis: d[2],
-      };
-    });
+    var svg = d3.select("svg")
+      .attr("width", width)
+      .attr("height", height);
 
-    const colorRange = this.get('colors');
+    svg.append("path")
+      .datum({type: "Sphere"})
+      .attr("class", "sphere")
+      .attr("d", path);
 
-    const moveAxisPointer = function(cxValue, cyValue) {
-      svg.select("#x-axis-pointer")
-        .attr("fill", "black")
-        .attr("points",  (cxValue - 5) + ",-40 " + cxValue + ",-30 " + (cxValue + 5) + ",-40");
+    svg.append("path")
+      .datum(graticule)
+      .attr("class", "graticule")
+      .attr("d", path);
 
-      svg.select("#y-axis-pointer")
-        .attr("fill", "black")
-        .attr("points",  "-45," + (cyValue - 5) + "-35," + cyValue + " -45," + (cyValue + 5));
+    svg.append("path")
+      .datum({type: "LineString", coordinates: [[-180, 0], [-90, 0], [0, 0], [90, 0], [180, 0]]})
+      .attr("class", "equator")
+      .attr("d", path);
+
+    var coordinates = projection([10, 30]);
+    svg.append("circle")
+      .attr("cx", coordinates[0])
+      .attr("cy", coordinates[1])
+      .attr("r", 5);
+
+    svg.call(d3.drag()
+      .on("start", dragstarted)
+      .on("drag", dragged));
+
+    var render = function () {
+      },
+      v0, // Mouse position in Cartesian coordinates at start of drag gesture.
+      r0, // Projection rotation as Euler angles at start.
+      q0; // Projection rotation as versor at start.
+
+    render = function () {
     };
 
-    $("#svg-wrapper").hover(null, function () {
-      g.selectAll(".dot")
-        .attr("r", baseR)
-        .attr("stroke-dasharray", null)
-        .attr("stroke", borderColor);
-    });
+    function dragstarted() {
+      v0 = versor.cartesian(projection.invert(d3.mouse(this)));
+      r0 = projection.rotate();
+      q0 = versor(r0);
+    }
 
-    const onMouseMove = function (target) {
-      let circle = $(target);
-      let zxValue = parseInt(circle.data("zx"));
-      let zyValue = parseInt(circle.data("zy"));
-      let cxValue = parseFloat(circle.attr("cx"));
-      let cyValue = parseFloat(circle.attr("cy"));
-      let absX = Math.abs(zxValue);
-      let absY = Math.abs(zyValue);
+    function dragged() {
+      var v1 = versor.cartesian(projection.rotate(r0).invert(d3.mouse(this))),
+        q1 = versor.multiply(q0, versor.delta(v0, v1)),
+        r1 = versor.rotation(q1);
+      projection.rotate(r1);
+      svg.selectAll("path").attr("d", path);
+      var coordinates = projection([10, 30]);
+      svg.selectAll("circle")
+        .attr("cx", coordinates[0])
+        .attr("cy", coordinates[1])
+        .attr("r", 5);
+    }
 
-      moveAxisPointer(cxValue, cyValue);
-
-      g.selectAll(".dot")
-        .attr("r", baseR)
-        .attr("stroke-dasharray", null)
-        .attr("stroke", borderColor);
-
-      let absR = Math.max(absX, absY);
-      if (absR < 90) {
-        for (let step = 0; step <= absR; step += 5) {
-          let points = [
-            [-absR, +step],
-            [-absR, -step],
-            [+absR, +step],
-            [+absR, -step],
-            [+step, +absR],
-            [-step, +absR],
-            [+step, -absR],
-            [-step, -absR],
-          ];
-          $.map(points, function (p) {
-            g.select("circle.dot[data-zx='" + p[0] + "'][data-zy='" + p[1] + "']")
-              .attr("stroke", borderCircleColor)
-              .attr("stroke-dasharray", "4, 1")
-              .attr("r", hoverCircleR);
-          });
-        }
-      }
-
-      g.select("circle.dot[data-zx='" + zxValue + "'][data-zy='" + zyValue + "']")
-        .attr("stroke-dasharray", null)
-        .attr("stroke", borderHoverColor);
-    };
-
-    g.selectAll("circle")
-      .data(data)
-      .enter().append("circle")
-      .attr("class", "dot")
-      .attr("r", function(d) {
-        return baseR;//d.circleLevel;
-      })
-      .attr("stroke", borderColor)
-      .attr("data-dis", function (d) {
-        return d.dis;
-      })
-      .attr("data-zx", function (d) {
-        return d.zx;
-      })
-      .attr("data-zy", function (d) {
-        return d.zy;
-      })
-      .attr("cx", function (d) {
-        return zx(d.zx);
-      })
-      .attr("cy", function (d) {
-        return zy(d.zy);
-      })
-      .style("fill", function (d) {
-        if (d.dis == minDistance) {
-          return colorRange[10];
-        }
-        return colorRange[parseInt((range - d.dis) / range * 10)];
-      })
-      .style("cursor", "pointer")
-      .on("mouseover", function () {
-        // onMouseMove(this);
-        return tooltip
-          .style("visibility", "visible")
-          .text($(this).data('dis'));
-      })
-      .on("mousemove", function () {
-        return tooltip
-          .style("top", (event.pageY - 10) + "px")
-          .style("left", (event.pageX + 10) + "px");
-      })
-      .on("mouseout", function () {
-        return tooltip.style("visibility", "hidden");
-      });
-
-    g.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + (zy.range()[0] - 10) + ")")
-      .call(d3.axisTop(zx).ticks(36));
-
-    g.append("g")
-      .attr("class", "y axis")
-      .attr("transform", "translate(-10, 0)")
-      .call(d3.axisLeft(zy).ticks(36));
-
-    g.append("polygon")
-      .attr("id", "x-axis-pointer")
-      .attr("points", "0,0 0,0 0,0")
-      .attr("fill", "none")
-      .attr("stroke", "none")
-      .attr("stroke-width", 2);
-
-    g.append("polygon")
-      .attr("id", "y-axis-pointer")
-      .attr("points", "0,0 0,0 0,0")
-      .attr("fill", "none")
-      .attr("stroke", "none")
-      .attr("stroke-width", 2);
 
   }
-});
+
+  });
