@@ -1,0 +1,30 @@
+
+#globe {
+  background: #fff;
+  cursor: move;
+}
+
+#globe path {
+  fill: none;
+  stroke-linejoin: round;
+}
+
+#globe .sphere,
+#globe .graticule {
+  fill: #fff;
+  stroke: #aaa;
+  fill-opacity: 1;
+}
+
+#globe .equator {
+  stroke: #ff8300;
+  stroke-width: 1px;
+}
+
+#globe .circle {
+  cursor: pointer;
+}
+
+#globe .circle:hover {
+  stroke: red;
+}
