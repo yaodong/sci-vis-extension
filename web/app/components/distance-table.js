@@ -105,6 +105,10 @@ export default Ember.Component.extend({
   didRender() {
     this._super(...arguments);
 
+    var minDistance = this.get('outputs.best_projection')[2],
+      maxDistance = this.get('outputs.worst_projection')[2],
+      range = maxDistance - minDistance;
+
     var width = 960,
       height = 500,
       rotate = [10, -10],
@@ -142,11 +146,28 @@ export default Ember.Component.extend({
       .attr("class", "equator")
       .attr("d", path);
 
-    var coordinates = projection([10, 30]);
-    svg.append("circle")
-      .attr("cx", coordinates[0])
-      .attr("cy", coordinates[1])
-      .attr("r", 5);
+    const colorRange = this.get('colors');
+
+    let circleG = d3.geoCircle().radius(1.5).precision(90);
+    $.map(this.get('outputs.bottleneck_distances'), function (d) {
+      let zx_angle = d[0];
+      let zy_angle = d[1];
+
+
+      let color = null;
+      if (d[2] == minDistance) {
+        color = colorRange[10];
+      } else {
+        color = colorRange[parseInt((range - d[2]) / range * 10)];
+      }
+      svg.append("path")
+        .datum(circleG.center([90 - zx_angle, 90 - zy_angle])())
+        .style("fill", color);
+    });
+
+    svg.append("path")
+      .datum(circleG.center([30, 30]))
+      .attr("stroke", "red");
 
     svg.call(d3.drag()
       .on("start", dragstarted)
@@ -173,11 +194,6 @@ export default Ember.Component.extend({
         r1 = versor.rotation(q1);
       projection.rotate(r1);
       svg.selectAll("path").attr("d", path);
-      var coordinates = projection([10, 30]);
-      svg.selectAll("circle")
-        .attr("cx", coordinates[0])
-        .attr("cy", coordinates[1])
-        .attr("r", 5);
     }
 
 
