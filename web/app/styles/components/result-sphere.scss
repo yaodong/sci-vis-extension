@@ -1,0 +1,29 @@
+.result-sphere {
+  background: #fff;
+  cursor: move;
+
+  path {
+    fill: none;
+    stroke-linejoin: round;
+  }
+
+  .sphere, .graticule {
+    fill: #fff;
+    stroke: #aaa;
+    fill-opacity: 1;
+  }
+
+  .equator {
+    stroke: #ff8300;
+    stroke-width: 1px;
+  }
+
+  .circle {
+    cursor: pointer;
+  }
+
+  .circle:hover {
+    stroke: red;
+  }
+
+}

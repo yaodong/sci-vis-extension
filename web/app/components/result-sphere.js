@@ -1,7 +1,6 @@
 import Ember from 'ember';
-import config from 'singer/config/environment';
-const $ = Ember.$;
 const d3 = window.d3;
+const $ = Ember.$;
 
 export default Ember.Component.extend({
   colors: [
@@ -18,59 +17,34 @@ export default Ember.Component.extend({
     "#8E24AA", // best
   ],
 
-  dir: null,
-
-  imageUrl: Ember.computed("dir", "currentX", "currentY", function() {
-    return config.APP.API_HOST
-        + '/static/jobs/'
-        + this.get('dir')
-        + '/images/'
-        + this.get("currentX")
-        + "__"
-        + this.get("currentY")
-        + ".png"
-  }),
-
-  currentX: Ember.computed('outputs', function () {
-    return this.get('outputs.best_projection')[0];
-  }),
-  currentY: Ember.computed('outputs', function () {
-    return this.get('outputs.best_projection')[1];
-  }),
-  currentD: Ember.computed('outputs', function () {
-    return this.get('outputs.best_projection')[2];
-  }),
-
-  /**
-   * https://gist.github.com/serdaradali/11346541
-   * https://bl.ocks.org/mbostock/7ea1dde508cec6d2d95306f92642bc42
-   */
   didRender() {
     this._super(...arguments);
 
-    let minDistance = this.get('outputs.best_projection')[2],
-      maxDistance = this.get('outputs.worst_projection')[2],
-      range = maxDistance - minDistance;
-
-    let width = 500,
+    let bestProjection = this.get('outputs.best_projection'),
+      worstProjection = this.get('outputs.worst_projection'),
+      minDistance = bestProjection[2],
+      maxDistance = worstProjection[2],
+      range = maxDistance - minDistance,
+      width = 500,
       height = 500,
-      versor = this.versor();
+      versor = this.versor(),
+      colorRange = this.get('colors');
+
+    let svg = d3.select("svg")
+      .attr("width", width)
+      .attr("height", height);
 
     let projection = d3.geoOrthographic()
       .scale(240)
       .rotate([0, -50, -30])
       .translate([width / 2, height / 2])
       .clipAngle(90 + 1e-6)
-      .precision(.5);
+      .precision(0.5);
 
     let path = d3.geoPath()
       .projection(projection);
 
     let graticule = d3.geoGraticule();
-
-    let svg = d3.select("svg")
-      .attr("width", width)
-      .attr("height", height);
 
     svg.append("path")
       .datum({type: "Sphere"})
@@ -87,19 +61,18 @@ export default Ember.Component.extend({
       .attr("class", "equator")
       .attr("d", path);
 
-    const colorRange = this.get('colors');
-
     let circleG = d3.geoCircle().radius(1.5).precision(90);
     $.map(this.get('outputs.bottleneck_distances'), function (d) {
       let zx_angle = d[0];
       let zy_angle = d[1];
 
       let color = null;
-      if (d[2] == minDistance) {
+      if (d[2] === minDistance) {
         color = colorRange[10];
       } else {
         color = colorRange[parseInt((range - d[2]) / range * 10)];
       }
+
       svg.append("path")
         .datum(circleG.center([90 - zx_angle, 90 - zy_angle])())
         .style("fill", color)
@@ -111,29 +84,16 @@ export default Ember.Component.extend({
         .on("click", circleClicked);
     });
 
-    let that = this;
+    let component = this;
 
     function circleClicked() {
       let circle = d3.select(this);
-      let detail = $(".js-preview-detail");
-      detail.find(".js--distance").text(circle.attr("data-dis"));
-      detail.find(".js--direction").text("[" + circle.attr("data-zx") + ", " + circle.attr("data-zy") + "]");
-
-      let imageUrl = config.APP.API_HOST
-        + '/static/jobs/'
-        + that.get("dir")
-        + '/images/'
-        + circle.attr("data-zx")
-        + "__"
-        + circle.attr("data-zy")
-        + ".png";
-
-      detail.find(".js--image").find("img").attr("href", imageUrl);
+      component.sendAction("directionChanged", {
+        zx: circle.attr("data-zx")
+      });
     }
 
-    svg.call(d3.drag()
-      .on("start", dragstarted)
-      .on("drag", dragged));
+    svg.call(d3.drag().on("start", dragStarted).on("drag", dragged));
 
     // svg.call(d3.zoom().on("zoom", zoomed));
 
@@ -142,7 +102,7 @@ export default Ember.Component.extend({
       r0, // Projection rotation as Euler angles at start.
       q0; // Projection rotation as versor at start.
 
-    function dragstarted() {
+    function dragStarted() {
       v0 = versor.cartesian(projection.invert(d3.mouse(this)));
       r0 = projection.rotate();
       q0 = versor(r0);
@@ -208,7 +168,9 @@ export default Ember.Component.extend({
     // Returns the quaternion to rotate between two cartesian points on the sphere.
     versor.delta = function (v0, v1) {
       let w = cross(v0, v1), l = sqrt(dot(w, w));
-      if (!l) return [1, 0, 0, 0];
+      if (!l) {
+        return [1, 0, 0, 0];
+      }
       let t = acos(max(-1, min(1, dot(v0, v1)))) / 2, s = sin(t); // t = θ / 2
       return [cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
     };
@@ -236,6 +198,6 @@ export default Ember.Component.extend({
     }
 
     return versor;
-  }
+  },
 
 });
