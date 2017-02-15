@@ -24,7 +24,8 @@ def create_job(instance_id):
 
     job = Job.objects.get(pk=instance_id)
     job.started_at = timezone.now()
-    job.save(update_fields=['started_at'])
+    job.percentage = 5
+    job.save(update_fields=['started_at', 'percentage'])
 
     # dir
     job.ticket = '%s_%s' % (job.id, int(time.time()))
@@ -87,7 +88,7 @@ def create_job(instance_id):
                 sleep(1)
 
             count += 1
-            job.percentage = round(5 + count / total_angles * 90, 2)
+            job.percentage = round(5 + count / total_angles * 95, 2)
             job.save(update_fields=['percentage'])
 
     # find best direction

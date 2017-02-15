@@ -6,9 +6,9 @@ export default DS.Model.extend({
   inputs: DS.attr(),
   outputs: DS.attr(),
   ticket: DS.attr('string'),
-  status: DS.attr(),
+  status: DS.attr("number"),
   startedAt: DS.attr('date'),
   createdAt: DS.attr('date'),
   completedAt: DS.attr('date'),
-  percentage: DS.attr()
+  percentage: DS.attr("number")
 });
