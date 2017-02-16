@@ -1,7 +1,7 @@
 {
-  "name": "singer",
+  "name": "webapp",
   "version": "0.0.0",
-  "description": "Small description for singer goes here",
+  "description": "Web UI for dimension reduction api",
   "license": "MIT",
   "author": "",
   "directories": {

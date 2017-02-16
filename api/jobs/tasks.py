@@ -1,6 +1,6 @@
 from os import path, mkdir, chdir, listdir
 from celery import shared_task
-from singer.settings import BASE_DIR
+from webapp.settings import BASE_DIR
 from math import sin, cos, pi
 from django.utils import timezone
 import time
