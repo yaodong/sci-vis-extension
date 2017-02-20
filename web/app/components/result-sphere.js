@@ -128,10 +128,14 @@ export default Ember.Component.extend({
     console.log(cmap.length);
 
     let scaleBox = $(".colorbar");
-    for (let i = 0; i < shades; i++) {
-      scaleBox.append($("<span style='background-color: " + cmap[i] + "'></span>"));
+    for (let i = shades - 1; i >= 0; i--) {
+      let label = '';
+      if (i === 0 || (i + 1) % 10 === 0) {
+        let labelNumber = minDistance + (shades - i - 1) / shades * range;
+        label = '<small>' + labelNumber.toFixed(2) + '</small>';
+      }
+      scaleBox.append($("<li><span style='background-color: " + cmap[i] + "'></span>"+ label + "</li>"));
     }
-
   },
 
   versor() {
