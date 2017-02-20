@@ -1,23 +1,22 @@
 import Ember from 'ember';
+import colorMap from 'npm:colormap';
 const d3 = window.d3;
 const $ = Ember.$;
 
 export default Ember.Component.extend({
-  colors: [
-    "#E1F5FE", // 1
-    "#B2EBF2", // 2
-    "#B2DFDB", // 3
-    "#A5D6A7", // 4
-    "#AED581", // 5
-    "#D4E157", // 6
-    "#FFEB3B", // 7
-    "#FFB300", // 8
-    "#F57C00", // 9
-    "#BF360C", // 10
-    "#8E24AA", // best
-  ],
+
+  colorShades: 50,
+
+  cmap: Ember.computed("colorShades", function() {
+    return colorMap({
+      colormap: "YIGnBu",
+      nshades: this.get("colorShades"),
+      format: 'rgbaString'
+    });
+  }),
 
   didRender() {
+
     this._super(...arguments);
 
     let bestProjection = this.get('outputs.best_projection'),
@@ -27,8 +26,7 @@ export default Ember.Component.extend({
       range = maxDistance - minDistance,
       width = 500,
       height = 500,
-      versor = this.versor(),
-      colorRange = this.get('colors');
+      versor = this.versor();
 
     let svg = d3.select("svg")
       .attr("width", width)
@@ -61,18 +59,15 @@ export default Ember.Component.extend({
       .attr("class", "equator")
       .attr("d", path);
 
+    let cmap = this.get("cmap");
+    let shades = this.get("colorShades");
+
     let circleG = d3.geoCircle().radius(1.5).precision(90);
     $.map(this.get('outputs.bottleneck_distances'), function (d) {
       let zx_angle = d[0];
       let zy_angle = d[1];
 
-      let color = null;
-      if (d[2] === minDistance) {
-        color = colorRange[10];
-      } else {
-        color = colorRange[parseInt((range - d[2]) / range * 10)];
-      }
-
+      let color = cmap[parseInt((1 - (d[2] - minDistance) / range) * shades)];
       svg.append("path")
         .datum(circleG.center([90 - zx_angle, 90 - zy_angle])())
         .style("fill", color)
@@ -91,14 +86,14 @@ export default Ember.Component.extend({
       component.sendAction("detailChanged", {
         zx: circle.attr("data-zx"),
         zy: circle.attr("data-zy"),
-        dis: circle.attr("data-dis"),
+        dis: circle.attr("data-dis")
       });
     }
 
     component.sendAction("detailChanged", {
       zx: bestProjection[0],
       zy: bestProjection[1],
-      dis: bestProjection[2],
+      dis: bestProjection[2]
     });
 
     svg.call(d3.drag().on("start", dragStarted).on("drag", dragged));
@@ -129,6 +124,13 @@ export default Ember.Component.extend({
     //   console.log(transform.k);
     //   svg.selectAll("path").attr("transform", "translate(" + transform.x + "," + transform.y + ") scale(" + transform.k + ")");
     // }
+
+    console.log(cmap.length);
+
+    let scaleBox = $(".colorbar");
+    for (let i = 0; i < shades; i++) {
+      scaleBox.append($("<span style='background-color: " + cmap[i] + "'></span>"));
+    }
 
   },
 
@@ -206,6 +208,8 @@ export default Ember.Component.extend({
     }
 
     return versor;
-  },
+  }
+  ,
 
-});
+})
+;
