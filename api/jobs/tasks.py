@@ -57,6 +57,10 @@ def create_job(instance_id):
             if chunk:
                 f.write(chunk)
 
+    # create 3d preview image
+    create_3d_preview_image(image_dir, base_file_path)
+    return
+
     # process angles
     chdir(path.join(BASE_DIR, 'scripts'))
 
@@ -125,4 +129,30 @@ def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     ax.set_ylabel('Y')
 
     plt.savefig(path.join(preview_dir, '%s__%s.png' % (zx_angle, zy_angle)))
+    plt.close()
+
+def create_3d_preview_image(image_dir, file):
+    from matplotlib import pyplot as plt
+    from matplotlib import animation
+    from mpl_toolkits.mplot3d import Axes3D
+
+    plt.axis('equal')
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    ax.set_axis_off()
+
+    def init():
+        with open(file) as f:
+            for line in f:
+                x, y, z = [float(i) for i in line.rstrip().split(',')]
+                ax.scatter(x, y, z, s=2, alpha=0.7, c="m")
+
+    def animate(i):
+        ax.view_init(elev=i*5, azim=i*5)
+
+    # Animate
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
+    # Save
+    anim.save(path.join(image_dir, 'preview.gif'), writer='imagemagick', fps=8)
     plt.close()
