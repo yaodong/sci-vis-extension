@@ -128,6 +128,7 @@ export default Ember.Component.extend({
     console.log(cmap.length);
 
     let scaleBox = $(".colorbar");
+    scaleBox.html("");
     for (let i = shades - 1; i >= 0; i--) {
       let label = '';
       if (i === 0 || (i + 1) % 10 === 0) {

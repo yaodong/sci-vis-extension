@@ -1,5 +1,5 @@
 <div class="row stage-header">
-  <div class="col-sm-6 stage-title">#{{model.id}}</div>
+  <div class="col-sm-6 stage-title">{{model.name}} <small>#{{model.id}}</small></div>
   <div class="col-sm-6 text-right">{{#link-to "jobs.index" class="btn btn-default"}}Back to List{{/link-to}}</div>
 </div>
 
@@ -7,13 +7,13 @@
   <h3 class="widget__title">Result</h3>
   <ul class="result-detail">
     <li>
-      <strong>Name</strong> {{model.name}}
-    </li>
-    <li>
       <strong>Best Direction</strong> [{{model.outputs.best_projection.[0]}}, {{model.outputs.best_projection.[1]}}]
     </li>
     <li>
-      <strong>Bottleneck Distance</strong> {{model.outputs.best_project.[2]}}
+      <strong>Bottleneck Distance</strong> {{model.outputs.best_projection.[2]}}
+    </li>
+    <li>
+      <a href="{{previewImgUrl}}"><img src="{{previewImgUrl}}" /></a>
     </li>
   </ul>
 </div>
