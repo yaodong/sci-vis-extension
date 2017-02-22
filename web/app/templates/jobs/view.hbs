@@ -13,7 +13,10 @@
       <strong>Bottleneck Distance</strong> {{model.outputs.best_projection.[2]}}
     </li>
     <li>
-      <a href="{{previewImgUrl}}"><img src="{{previewImgUrl}}" /></a>
+      {{light-box href=previewImgUrl
+          data-lightbox="preview"
+          data-title="preview"
+          data-class="preview"}}
     </li>
   </ul>
 </div>
@@ -31,7 +34,12 @@
       </div>
       <div class="preview-detail">
         <strong>Projection Image</strong>
-        <p class="js--image"><img class="preview-detail__image" src="{{selected.imageUrl}}" /></p>
+        <p class="js--image">
+          {{light-box href=selected.imageUrl
+            data-lightbox="preview"
+            data-title="preview"
+            data-class="preview-detail__image"}}
+        </p>
       </div>
     </div>
     <div class="col-md-8">

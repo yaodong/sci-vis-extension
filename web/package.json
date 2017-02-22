@@ -51,6 +51,7 @@
   },
   "private": true,
   "dependencies": {
-    "colormap": "^2.2.0"
+    "colormap": "^2.2.0",
+    "ember-cli-lightbox": "^1.0.2"
   }
 }
