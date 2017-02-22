@@ -12,7 +12,7 @@ export default Ember.Component.extend({
   didReceiveAttrs() {
     this._super(...arguments);
     let className = this.get("className");
-    $("a.ember-lightbox a." + className).attr("src", this.get("projectionImageUrl"));
+    $("a.ember-lightbox img." + className).attr("src", this.get("projectionImageUrl"));
   },
 
   baseUrl: Ember.computed("model", function() {
