@@ -5,16 +5,14 @@ const $ = window.$;
 export default Ember.Component.extend({
 
   zx: null,
-
   zy: null,
-
   model: null,
+  className: "detail-image",
 
   didReceiveAttrs() {
     this._super(...arguments);
-    $("a.ember-lightbox").map((ix, box) => {
-      $(box).find("img").attr("src", this.get("projectionImageUrl"));
-    });
+    let className = this.get("className");
+    $("a.ember-lightbox a." + className).attr("src", this.get("projectionImageUrl"));
   },
 
   baseUrl: Ember.computed("model", function() {
