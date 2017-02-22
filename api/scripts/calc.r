@@ -28,6 +28,6 @@ write(bottleneckDist, file = result_file)
 
 png(file=paste(dirname, "/images/diagram_", toString(zx_angle), "__", toString(zy_angle), ".png", sep=""), width=1280, height=1280, res=200, units="px")
 
-plot(projection_diag[["diagram"]])
+plot(projection_diag[["diagram"]], main = "Diagram of 2D")
 
 dev.off()

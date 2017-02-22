@@ -13,6 +13,6 @@ base_diag = ripsDiag(base_matrix, maxdimension, maxscale, library = "GUDHI")
 
 png(file=paste(dirname, "/images/diagram_base.png", sep=""), width=1280, height=1280, res=200, units="px")
 
-plot(base_diag[["diagram"]])
+plot(base_diag[["diagram"]], main = "Diagram of 3D")
 
 dev.off()
