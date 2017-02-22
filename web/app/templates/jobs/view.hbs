@@ -1,5 +1,5 @@
 <div class="row stage-header">
-  <div class="col-sm-6 stage-title">#{{model.id}}</div>
+  <div class="col-sm-6 stage-title">{{model.name}} <small>#{{model.id}}</small></div>
   <div class="col-sm-6 text-right">{{#link-to "jobs.index" class="btn btn-default"}}Back to List{{/link-to}}</div>
 </div>
 
@@ -7,13 +7,16 @@
   <h3 class="widget__title">Result</h3>
   <ul class="result-detail">
     <li>
-      <strong>Name</strong> {{model.name}}
-    </li>
-    <li>
       <strong>Best Direction</strong> [{{model.outputs.best_projection.[0]}}, {{model.outputs.best_projection.[1]}}]
     </li>
     <li>
-      <strong>Bottleneck Distance</strong> {{model.outputs.best_project.[2]}}
+      <strong>Bottleneck Distance</strong> {{model.outputs.best_projection.[2]}}
+    </li>
+    <li>
+      {{light-box href=previewImgUrl
+          data-lightbox="preview"
+          data-title="preview"
+          data-class="preview-3d"}}
     </li>
   </ul>
 </div>
@@ -23,19 +26,21 @@
     <div class="col-md-4 js-preview-detail">
       <div class="preview-detail">
         <strong>Bottleneck Distance</strong>
-        <p class="js--distance">{{selected.distance}}</p>
+        <p class="js--distance">{{distance}}</p>
       </div>
       <div class="preview-detail">
         <strong>Direction</strong>
-        <p class="js--direction">{{selected.direction}}</p>
+        <p class="js--direction">[{{zx}}, {{zy}}]</p>
       </div>
       <div class="preview-detail">
         <strong>Projection Image</strong>
-        <p class="js--image"><img class="preview-detail__image" src="{{selected.imageUrl}}" /></p>
+        <p class="js--image projection-images">
+          {{detail-images model=model zx=zx zy=zy className="projection-plot"}}
+        </p>
       </div>
     </div>
     <div class="col-md-8">
-      {{result-sphere outputs=model.outputs detailChanged=(action "detailChanged")}}
+      {{result-sphere outputs=model.outputs directionChanged=(action "directionChanged")}}
     </div>
   </div>
 </div>

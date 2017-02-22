@@ -12,8 +12,9 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
+from os.path import dirname
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = dirname(dirname(dirname(os.path.abspath(__file__))))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -25,6 +26,8 @@ SECRET_KEY = '-#*648%079#_6qe%io*jzr*rwil=sv533i#v8@ww4vkt4@yy&o'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+DATA_DIR = None
 
 # Application definition
 
@@ -79,7 +82,7 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'webapp',
+        'NAME': 'dimension_reduction',
     }
 }
 

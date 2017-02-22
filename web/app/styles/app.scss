@@ -36,4 +36,21 @@ body {
 @import "components/widget";
 @import "components/result-detail";
 @import "components/preview-detail";
+@import "components/colorbar";
 
+
+/* to be clean */
+.preview-3d {
+  width: 100px;
+  height: 100px;
+}
+
+.projection-plot {
+  width: 150px;
+  height: 150px;
+}
+
+.projection-images .ember-lightbox {
+  display: inline-block;
+  margin-bottom: 10px;
+}

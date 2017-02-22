@@ -1,7 +1,7 @@
-from os import path, mkdir, chdir, listdir
+from os import path, mkdir, chdir, listdir, makedirs
 from celery import shared_task
-from webapp.settings import BASE_DIR
 from math import sin, cos, pi
+from django.conf import settings
 from django.utils import timezone
 import time
 import requests
@@ -30,8 +30,8 @@ def create_job(instance_id):
     # dir
     job.ticket = '%s_%s' % (job.id, int(time.time()))
     job.save(update_fields=['ticket'])
-    work_dir = path.join(BASE_DIR, 'static', 'jobs', job.ticket)
-    mkdir(work_dir)
+    work_dir = path.join(settings.DATA_DIR, 'jobs', job.ticket)
+    makedirs(work_dir)
 
     # prepare dir
     distance_dir = path.join(work_dir, 'distance')
@@ -57,11 +57,18 @@ def create_job(instance_id):
             if chunk:
                 f.write(chunk)
 
+    # create 3d preview image
+    create_3d_preview_image(image_dir, base_file_path)
+
     # process angles
-    chdir(path.join(BASE_DIR, 'scripts'))
+    chdir(path.join(settings.BASE_DIR, 'scripts'))
 
     angle_range = range(-90, 90, 5)
     total_angles = pow(len(angle_range), 2)
+
+    command = 'Rscript diagram.r %s' % work_dir
+    p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    outs, errs = p.communicate(timeout=15)
 
     count = 0
     for zx_angle in angle_range:
@@ -78,7 +85,7 @@ def create_job(instance_id):
                     rotated_row = rotate(rotated_row, zy_angle, dim1=0, dim2=2)
                     rf.write('{},{},{}\n'.format(*[round(i, 6) for i in rotated_row]))
 
-            command = 'Rscript calc.r %s %s %s' % (job.ticket, zx_angle, zy_angle)
+            command = 'Rscript calc.r %s %s %s' % (work_dir, zx_angle, zy_angle)
             p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 
             # create preview image before checking sub process status
@@ -86,6 +93,9 @@ def create_job(instance_id):
 
             while p.poll() is None:
                 sleep(1)
+
+            if p.returncode != 0:
+                raise Exception("error")
 
             count += 1
             job.percentage = round(5 + count / total_angles * 95, 2)
@@ -111,7 +121,6 @@ def create_job(instance_id):
 
 def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     import matplotlib.pyplot as plt
-    plt.axis('equal')
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -119,10 +128,35 @@ def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     with open(file) as f:
         for line in f:
             x, y, z = line.rstrip().split(',')
-            ax.scatter(x, y)
+            ax.scatter(x, y, s=2, alpha=0.7, c="m")
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
 
-    plt.savefig(path.join(preview_dir, '%s__%s.png' % (zx_angle, zy_angle)))
+    plt.axis('equal')
+    plt.savefig(path.join(preview_dir, '%s__%s.png' % (zx_angle, zy_angle)), dpi=150)
+    plt.close()
+
+
+def create_3d_preview_image(image_dir, file):
+    from matplotlib import pyplot as plt
+    from matplotlib import animation
+    from mpl_toolkits.mplot3d import Axes3D
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+
+    def init():
+        with open(file) as f:
+            for line in f:
+                x, y, z = [float(i) for i in line.rstrip().split(',')]
+                ax.scatter(x, y, z, s=2, alpha=0.7, c="m")
+
+    def animate(i):
+        ax.view_init(elev=i * 5, azim=i * 5)
+
+    # Animate
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
+    # Save
+    anim.save(path.join(image_dir, 'preview.gif'), writer='imagemagick', fps=8)
     plt.close()
