@@ -25,6 +25,9 @@ projection_diag = ripsDiag(projection_matrix, maxdimension, maxscale, library = 
 
 bottleneckDist <- bottleneck(base_diag[["diagram"]], projection_diag[["diagram"]], dimension = 1)
 write(bottleneckDist, file = result_file)
-rm("projection_matrix")
-rm("projection_data")
-rm("projection_diag")
+
+png(file=paste(dirname, "/images/diagram_", toString(zx_angle), "__", toString(zy_angle), ".png", sep=""), width=1280, height=1280, res=200, units="px")
+
+plot(projection_diag[["diagram"]])
+
+dev.off()

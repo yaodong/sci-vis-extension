@@ -66,6 +66,10 @@ def create_job(instance_id):
     angle_range = range(-90, 90, 5)
     total_angles = pow(len(angle_range), 2)
 
+    command = 'Rscript diagram.r %s' % work_dir
+    p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    outs, errs = p.communicate(timeout=15)
+
     count = 0
     for zx_angle in angle_range:
         for zy_angle in angle_range:
@@ -91,7 +95,7 @@ def create_job(instance_id):
                 sleep(1)
 
             if p.returncode != 0:
-                raise "error"
+                raise Exception("error")
 
             count += 1
             job.percentage = round(5 + count / total_angles * 95, 2)
@@ -117,7 +121,6 @@ def create_job(instance_id):
 
 def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     import matplotlib.pyplot as plt
-    plt.axis('equal')
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -130,7 +133,8 @@ def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
 
-    plt.savefig(path.join(preview_dir, '%s__%s.png' % (zx_angle, zy_angle)))
+    plt.axis('equal')
+    plt.savefig(path.join(preview_dir, '%s__%s.png' % (zx_angle, zy_angle)), dpi=150)
     plt.close()
 
 
@@ -139,11 +143,8 @@ def create_3d_preview_image(image_dir, file):
     from matplotlib import animation
     from mpl_toolkits.mplot3d import Axes3D
 
-    plt.axis('equal')
-
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    ax.set_axis_off()
 
     def init():
         with open(file) as f:
