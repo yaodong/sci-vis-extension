@@ -22,7 +22,7 @@ module.exports = function(deployTarget) {
     ENV['scp'] = {
       username: 'demo',
       host: '192.81.135.167',
-      path: '/srv/webapp/static'
+      path: '/srv/demo/frontend'
     }
   }
 

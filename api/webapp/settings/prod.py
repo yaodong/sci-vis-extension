@@ -8,7 +8,7 @@ if SECRET_KEY is None or len(SECRET_KEY) < 50:
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["demo-singer.yaodong.org"]
+ALLOWED_HOSTS = ["demo-singer-api.yaodong.org"]
 
 DATA_DIR = "/srv/demo/data"
 
