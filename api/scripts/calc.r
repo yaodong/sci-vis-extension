@@ -9,15 +9,15 @@ library("TDA")
 maxscale <- 10
 maxdimension <- 1
 
-base_data <- read.csv(paste("../static/jobs/", dirname ,"/base.csv", sep=""), header=FALSE)
+base_data <- read.csv(paste(dirname ,"/base.csv", sep=""), header=FALSE)
 base_matrix = cbind(base_data[,1], base_data[,2], base_data[,3])
 base_diag = ripsDiag(base_matrix, maxdimension, maxscale, library = "GUDHI")
 
 rm("base_data")
 rm("base_matrix")
 
-rotated_file = paste("../static/jobs/", dirname, "/rotated/", toString(zx_angle), "__", toString(zy_angle) , ".csv", sep="")
-result_file = paste("../static/jobs/", dirname, "/distance/", toString(zx_angle), "__", toString(zy_angle) , ".txt", sep="")
+rotated_file = paste(dirname, "/rotated/", toString(zx_angle), "__", toString(zy_angle) , ".csv", sep="")
+result_file = paste(dirname, "/distance/", toString(zx_angle), "__", toString(zy_angle) , ".txt", sep="")
 
 projection_data = read.csv(rotated_file, header=FALSE)
 projection_matrix = cbind(projection_data[,1], projection_data[,2])

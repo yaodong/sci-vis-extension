@@ -3,7 +3,7 @@ from celery import Celery
 
 # More details at:
 # http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings.dev')
 
 app = Celery('webapp')
 app.config_from_object('django.conf:settings', namespace='CELERY')

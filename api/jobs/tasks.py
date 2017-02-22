@@ -1,7 +1,7 @@
-from os import path, mkdir, chdir, listdir
+from os import path, mkdir, chdir, listdir, makedirs
 from celery import shared_task
-from webapp.settings import BASE_DIR
 from math import sin, cos, pi
+from django.conf import settings
 from django.utils import timezone
 import time
 import requests
@@ -30,8 +30,8 @@ def create_job(instance_id):
     # dir
     job.ticket = '%s_%s' % (job.id, int(time.time()))
     job.save(update_fields=['ticket'])
-    work_dir = path.join(BASE_DIR, 'static', 'jobs', job.ticket)
-    mkdir(work_dir)
+    work_dir = path.join(settings.DATA_DIR, 'jobs', job.ticket)
+    makedirs(work_dir)
 
     # prepare dir
     distance_dir = path.join(work_dir, 'distance')
@@ -61,7 +61,7 @@ def create_job(instance_id):
     create_3d_preview_image(image_dir, base_file_path)
 
     # process angles
-    chdir(path.join(BASE_DIR, 'scripts'))
+    chdir(path.join(settings.BASE_DIR, 'scripts'))
 
     angle_range = range(-90, 90, 5)
     total_angles = pow(len(angle_range), 2)
@@ -81,7 +81,7 @@ def create_job(instance_id):
                     rotated_row = rotate(rotated_row, zy_angle, dim1=0, dim2=2)
                     rf.write('{},{},{}\n'.format(*[round(i, 6) for i in rotated_row]))
 
-            command = 'Rscript calc.r %s %s %s' % (job.ticket, zx_angle, zy_angle)
+            command = 'Rscript calc.r %s %s %s' % (work_dir, zx_angle, zy_angle)
             p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 
             # create preview image before checking sub process status
