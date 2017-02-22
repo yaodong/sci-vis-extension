@@ -1,8 +1,12 @@
-{{#bs-navbar fluid=false class="navbar-fixed-top" as |navbar|}}
-  <div class="navbar-header">
-    {{#link-to "jobs.index" class="navbar-brand"}}Dimension Reduction{{/link-to}}
-  </div>
-{{/bs-navbar}}
+<nav class="header navbar navbar-default navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      {{#link-to "jobs.index" class="navbar-brand"}}Dimension Reduction{{/link-to}}
+    </div>
+  </div><!-- /.container -->
+</nav>
+
 
 <div class="container stage">
   {{outlet}}

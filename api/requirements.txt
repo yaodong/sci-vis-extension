@@ -5,4 +5,7 @@ djangorestframework-jsonapi==2.1.1
 django-celery-results==1.0.1
 django-celery-beat==1.0.1
 requests==2.13.0
-python-igraph==0.7.1.post6
+psycopg2==2.6.2
+redis==2.10.5
+gunicorn==19.6.0
+matplotlib==2.0.0

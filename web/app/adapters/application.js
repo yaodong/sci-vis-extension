@@ -1,6 +1,6 @@
 import DRFAdapter from './drf';
+import ENV from 'webapp/config/environment';
 
 export default DRFAdapter.extend({
-  host: 'http://localhost:8000',
-  namespace: ''
+  host: ENV.APP.API_HOST
 });

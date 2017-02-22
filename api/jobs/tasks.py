@@ -1,8 +1,10 @@
-from os import path, mkdir, chdir, listdir
+from os import path, mkdir, chdir, listdir, makedirs
 from celery import shared_task
-from singer.settings import BASE_DIR
 from math import sin, cos, pi
-from datetime import datetime
+from django.conf import settings
+from django.utils import timezone
+import time
+import requests
 
 
 def rotate(row, angle, dim1, dim2):
@@ -18,48 +20,62 @@ def rotate(row, angle, dim1, dim2):
 def create_job(instance_id):
     from subprocess import Popen, PIPE
     from jobs.models import Job
-    import time
-    import requests
+    from time import sleep
 
     job = Job.objects.get(pk=instance_id)
-    job.started_at = datetime.now()
-    job.save(update_fields=['started_at'])
+    job.started_at = timezone.now()
+    job.percentage = 5
+    job.save(update_fields=['started_at', 'percentage'])
 
+    # dir
+    job.ticket = '%s_%s' % (job.id, int(time.time()))
+    job.save(update_fields=['ticket'])
+    work_dir = path.join(settings.DATA_DIR, 'jobs', job.ticket)
+    makedirs(work_dir)
+
+    # prepare dir
+    distance_dir = path.join(work_dir, 'distance')
+    rotated_dir = path.join(work_dir, 'rotated')
+    image_dir = path.join(work_dir, 'images')
+    mkdir(distance_dir)
+    mkdir(rotated_dir)
+    mkdir(image_dir)
+
+    # download data file
     file_id = job.inputs['file']
     file_meta_url = 'https://www.filestackapi.com/api/file/%s/metadata' % file_id
     file_download_url = 'https://www.filestackapi.com/api/file/%s?dl=true' % file_id
-    dir_id = '%s_%s' % (job.id, time.time())
-    job_dir = path.join(BASE_DIR, 'tmp', dir_id)
 
     meta_data = requests.get(file_meta_url).json()
     if meta_data['mimetype'] != 'text/csv':
         return
 
-    mkdir(job_dir)
-    mkdir(path.join(job_dir, 'distance'))
-    mkdir(path.join(job_dir, 'rotated'))
-    mkdir(path.join(job_dir, 'preview'))
-
-    # download file
-    base_file_path = path.join(job_dir, 'base.csv')
-
+    base_file_path = path.join(work_dir, 'base.csv')
     r = requests.get(file_download_url, stream=True)
-
     with open(base_file_path, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:
                 f.write(chunk)
 
-    r.close()
+    # create 3d preview image
+    create_3d_preview_image(image_dir, base_file_path)
 
-    # create rotated xyz
+    # process angles
+    chdir(path.join(settings.BASE_DIR, 'scripts'))
+
     angle_range = range(-90, 90, 5)
+    total_angles = pow(len(angle_range), 2)
 
+    command = 'Rscript diagram.r %s' % work_dir
+    p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    outs, errs = p.communicate(timeout=15)
+
+    count = 0
     for zx_angle in angle_range:
         for zy_angle in angle_range:
-            rotated_file = path.join(job_dir, 'rotated', '%s__%s.csv' % (zx_angle, zy_angle))
+            print(['=', zx_angle, zy_angle])
 
-            create_preview_image.delay(zx_angle, zy_angle, path.join(job_dir, 'preview'), rotated_file)
+            rotated_file = path.join(rotated_dir, '%s__%s.csv' % (zx_angle, zy_angle))
 
             with open(base_file_path) as f, open(rotated_file, 'w') as rf:
                 for line in f:
@@ -69,48 +85,42 @@ def create_job(instance_id):
                     rotated_row = rotate(rotated_row, zy_angle, dim1=0, dim2=2)
                     rf.write('{},{},{}\n'.format(*[round(i, 6) for i in rotated_row]))
 
-    # computing all bottleneck distance
-    chdir(path.join(BASE_DIR, 'scripts'))
-    distance_dir = path.join(job_dir, 'distance')
-    total_angles = pow(len(angle_range), 2)
+            command = 'Rscript calc.r %s %s %s' % (work_dir, zx_angle, zy_angle)
+            p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 
-    command = 'Rscript calc.r %s' % dir_id
-    p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    while p.poll() is None:
-        result_file_count = len([name for name in listdir(distance_dir) if path.isfile(path.join(distance_dir, name))])
-        percentage = round(result_file_count / total_angles * (95 - 10) + 10, 3)
-        job.percentage = percentage
-        job.save(update_fields=['percentage'])
-        time.sleep(10)
+            # create preview image before checking sub process status
+            create_preview_image(zx_angle, zy_angle, image_dir, rotated_file)
 
-    job.percentage = 95
-    job.status = p.returncode
-    job.completed_at = datetime.now()
-    job.save(update_fields=['percentage', 'status', 'completed_at'])
+            while p.poll() is None:
+                sleep(1)
 
-    # find best projection direction
+            if p.returncode != 0:
+                raise Exception("error")
+
+            count += 1
+            job.percentage = round(5 + count / total_angles * 95, 2)
+            job.save(update_fields=['percentage'])
+
+    # find best direction
     results = []
     for zy_angle in angle_range:
         for zx_angle in angle_range:
-            result_file = path.join(job_dir, 'distance', '%s__%s.txt' % (zx_angle, zy_angle))
+            result_file = path.join(distance_dir, '%s__%s.txt' % (zx_angle, zy_angle))
             value = float(open(result_file).read())
             results.append([zx_angle, zy_angle, value])
 
+    job.status = 0
     job.percentage = 100
     job.outputs = {
-        'best_projection': min(results, key=lambda p: p[2]),
-        'worst_projection': max(results, key=lambda p: p[2]),
+        'best_projection': min(results, key=lambda item: item[2]),
+        'worst_projection': max(results, key=lambda item: item[2]),
         'bottleneck_distances': results,
     }
     job.save()
 
 
-@shared_task()
 def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     import matplotlib.pyplot as plt
-    import matplotlib
-    matplotlib.use('Qt5Agg')
-    plt.axis('equal')
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -118,9 +128,35 @@ def create_preview_image(zx_angle, zy_angle, preview_dir, file):
     with open(file) as f:
         for line in f:
             x, y, z = line.rstrip().split(',')
-            ax.scatter(x, y)
+            ax.scatter(x, y, s=2, alpha=0.7, c="m")
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
 
-    plt.savefig(path.join(preview_dir, '%s__%s.png' % (zx_angle, zy_angle)))
+    plt.axis('equal')
+    plt.savefig(path.join(preview_dir, '%s__%s.png' % (zx_angle, zy_angle)), dpi=150)
+    plt.close()
+
+
+def create_3d_preview_image(image_dir, file):
+    from matplotlib import pyplot as plt
+    from matplotlib import animation
+    from mpl_toolkits.mplot3d import Axes3D
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+
+    def init():
+        with open(file) as f:
+            for line in f:
+                x, y, z = [float(i) for i in line.rstrip().split(',')]
+                ax.scatter(x, y, z, s=2, alpha=0.7, c="m")
+
+    def animate(i):
+        ax.view_init(elev=i * 5, azim=i * 5)
+
+    # Animate
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
+    # Save
+    anim.save(path.join(image_dir, 'preview.gif'), writer='imagemagick', fps=8)
+    plt.close()

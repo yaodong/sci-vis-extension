@@ -1,0 +1,79 @@
+---
+- hosts: demo
+  user: root
+  tasks:
+    - name: ssh-copy-id (root)
+      authorized_key: user=root key="{{ lookup('file', '/Users/yaodong/.ssh/id_rsa.pub') }}"
+
+    - name: create user (demo)
+      user: name=demo state=present shell=/bin/bash
+
+    - name: ssh-keygen (demo)
+      user: name=demo generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
+
+    - name: ssh-copy-id (demo)
+      authorized_key: user=demo key="{{ lookup('file', '/Users/yaodong/.ssh/id_rsa.pub') }}"
+
+    - name: common packages
+      apt: name={{ item }} state=present
+      with_items:
+        - git
+        - vim
+        - supervisor
+        - nginx
+        - htop
+
+    - name: packages for pyenv
+      apt: name={{ item }} state=present
+      with_items:
+        - make
+        - build-essential
+        - libssl-dev
+        - zlib1g-dev
+        - libbz2-dev
+        - libreadline-dev
+        - libsqlite3-dev
+        - wget
+        - curl
+        - llvm
+        - libncurses5-dev
+        - libncursesw5-dev
+        - xz-utils
+
+    - name: commom packages
+      apt: name={{ item }} state=present
+      with_items:
+        - software-properties-common
+
+    - name: packages for R
+      apt: name={{ item }} state=present
+      with_items:
+        - libgmp3-dev
+        - libmpfr-dev
+
+    - name: packages for demo
+      apt: name={{ item }} state=present
+      with_items:
+        - postgresql
+        - postgresql-client
+        - libpq-dev
+        - imagemagick
+
+    - name: mkdirs for demo
+      file: path=/srv/demo state=directory owner=demo group=demo
+
+    - name: mkdirs for demo
+      file: path=/srv/demo/run state=directory owner=demo group=demo
+
+  roles:
+    - geerlingguy.firewall
+    - DavidWittman.redis
+
+  vars:
+    redis_bind: 127.0.0.1
+    firewall_allowed_tcp_ports:
+      - "22"
+      - "80"
+    firewall_additional_rules:
+      - "iptables -A INPUT -p icmp --icmp-type echo-request -j REJECT"
+      - "iptables -A OUTPUT -p icmp --icmp-type echo-reply -j DROP"

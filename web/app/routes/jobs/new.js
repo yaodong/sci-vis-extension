@@ -6,7 +6,16 @@ export default Ember.Route.extend({
     return this.get('store').createRecord('job', {
       name: 'run-' + moment().format('YYYYMMDD_HHmmss'),
       inputs: {},
-      outputs: {}
+      outputs: {},
+      percentage: 1
     })
+  },
+  resetController(controller, isExiting) {
+    if (isExiting) {
+      let model = controller.get('model');
+      if (!model.id) {
+        model.destroyRecord();
+      }
+    }
   }
 });
