@@ -26,24 +26,21 @@
     <div class="col-md-4 js-preview-detail">
       <div class="preview-detail">
         <strong>Bottleneck Distance</strong>
-        <p class="js--distance">{{selected.distance}}</p>
+        <p class="js--distance">{{distance}}</p>
       </div>
       <div class="preview-detail">
         <strong>Direction</strong>
-        <p class="js--direction">{{selected.direction}}</p>
+        <p class="js--direction">[{{zx}}, {{zy}}]</p>
       </div>
       <div class="preview-detail">
         <strong>Projection Image</strong>
         <p class="js--image">
-          {{light-box href=selected.imageUrl
-            data-lightbox="preview"
-            data-title="preview"
-            data-class="preview-detail__image"}}
+          {{detail-images model=model zx=zx zy=zy}}
         </p>
       </div>
     </div>
     <div class="col-md-8">
-      {{result-sphere outputs=model.outputs detailChanged=(action "detailChanged")}}
+      {{result-sphere outputs=model.outputs directionChanged=(action "directionChanged")}}
     </div>
   </div>
 </div>

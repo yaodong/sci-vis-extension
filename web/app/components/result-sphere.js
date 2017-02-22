@@ -83,18 +83,12 @@ export default Ember.Component.extend({
 
     function onClickOfCircle() {
       let circle = d3.select(this);
-      component.sendAction("detailChanged", {
-        zx: circle.attr("data-zx"),
-        zy: circle.attr("data-zy"),
-        dis: circle.attr("data-dis")
-      });
+      component.sendAction("directionChanged",
+        circle.attr("data-zx"),
+        circle.attr("data-zy"),
+        circle.attr("data-dis")
+      );
     }
-
-    component.sendAction("detailChanged", {
-      zx: bestProjection[0],
-      zy: bestProjection[1],
-      dis: bestProjection[2]
-    });
 
     svg.call(d3.drag().on("start", dragStarted).on("drag", dragged));
 
