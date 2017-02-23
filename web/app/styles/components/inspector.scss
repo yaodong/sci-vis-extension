@@ -1,0 +1,26 @@
+.inspector {
+}
+
+.inspector__info {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.inspector__section {
+  display: inline-block;
+  width: 270px;
+}
+
+.inspector__key {
+  font-weight: bold;
+}
+
+.inspector__value {
+  margin-bottom: 10px;
+}
+
+.inspector__image {
+  width: 100px;
+  height: 100px;
+}

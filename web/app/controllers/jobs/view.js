@@ -27,6 +27,11 @@ export default Ember.Controller.extend({
     return this.get("imageBaseUrl") + "/preview.gif";
   }),
 
+  previewImgUrl: Ember.computed("imageBaseUrl", function() {
+    return this.get("imageBaseUrl") + "/preview.gif";
+  }),
+
+
   projectionImageUrl: Ember.computed("model", "imageBaseUrl", "zx", "zy", function() {
     let results = this.get("model.outputs.bottleneck_distances");
     let baseUrl = this.get("imageBaseUrl");
