@@ -28,6 +28,7 @@
                       data-lightbox="job-info"
                       data-title="Preview (3D)"
                       data-class="job-info__image"}}
+          <small class="help-block">Click to enlarge</small>
         </div>
       </td>
       <!-- preview KED -->
@@ -38,6 +39,7 @@
                       data-lightbox="job-info"
                       data-title="KDE Diagram (3D)"
                       data-class="job-info__image"}}
+          <small class="help-block">Click to enlarge</small>
         </div>
       </td>
     </tr>
@@ -72,6 +74,7 @@
           <div class="inspector__key">Preview (2D)</div>
           <div class="inspector__value">
             {{inspector-diagram model=model zx=zx zy=zy title="Preview (2D)"}}
+            <small class="help-block">Click to enlarge</small>
           </div>
         </li>
 
@@ -80,12 +83,14 @@
           <div class="inspector__key">KDE Diagram (2D)</div>
           <div class="inspector__value">
             {{inspector-diagram model=model zx=zx zy=zy title="KDE Diagram (2D)" prefix="diagram_"}}
+            <small class="help-block">Click to enlarge</small>
           </div>
         </li>
       </ul>
     </div><!-- .col-md-4 -->
     <div class="col-md-8">
       {{result-sphere outputs=model.outputs directionChanged=(action "directionChanged")}}
+      <small class="help-block">Drag to rotate. Click a diamond to inspect result on its direction.</small>
     </div>
   </div>
 </div>
