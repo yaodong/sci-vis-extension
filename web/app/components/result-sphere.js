@@ -126,8 +126,6 @@ export default Ember.Component.extend({
     //   svg.selectAll("path").attr("transform", "translate(" + transform.x + "," + transform.y + ") scale(" + transform.k + ")");
     // }
 
-    console.log(cmap.length);
-
     let scaleBox = $(".colorbar");
     scaleBox.html("");
     for (let i = shades - 1; i >= 0; i--) {

@@ -22,7 +22,7 @@ export default Ember.Controller.extend({
         model.set('inputs', {
           file: form.find('#files-picker-id').val(),
         });
-        console.log(model.get('inputs'));
+
         model.set('method', form.find('input[name=method]').val());
         model.save().then(() => {
           that.transitionToRoute('jobs');
