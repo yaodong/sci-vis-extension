@@ -71,9 +71,9 @@
 
         <!-- projection image -->
         <li class="inspector__section">
-          <div class="inspector__key">Preview (2D)</div>
+          <div class="inspector__key">Projection (2D)</div>
           <div class="inspector__value">
-            {{inspector-diagram model=model zx=zx zy=zy title="Preview (2D)"}}
+            {{inspector-diagram model=model zx=zx zy=zy title="Projection (2D)"}}
             <small class="help-block">Click to enlarge</small>
           </div>
         </li>
@@ -90,7 +90,11 @@
     </div><!-- .col-md-4 -->
     <div class="col-md-8">
       {{result-sphere outputs=model.outputs directionChanged=(action "directionChanged")}}
-      <small class="help-block">Drag to rotate. Click a diamond to inspect result on its direction.</small>
+      <small class="help-block">
+        1. Each diamond represents a direction of projection. Click it to inspect the result.<br />
+        2. Drag the sphere to rotate.<br />
+        3. The best direction is marked by a diamond with red border.
+      </small>
     </div>
   </div>
 </div>
