@@ -66,17 +66,18 @@ export default Ember.Component.extend({
     $.map(this.get('outputs.bottleneck_distances'), function (d) {
       let zx_angle = d[0];
       let zy_angle = d[1];
-      let stroke = 'none';
+      let stroke = "none";
 
       if (d[2] === minDistance) {
-        stroke = 'red';
+        stroke = "red";
       }
+
 
       let color = cmap[parseInt((1 - (d[2] - minDistance) / range) * (shades - 1))];
       svg.append("path")
         .datum(circleG.center([90 - zx_angle, 90 - zy_angle])())
         .style("fill", color)
-        .style("stroke", stroke)
+        .attr("stroke", stroke)
         .attr("data-zx", zx_angle)
         .attr("data-zy", zy_angle)
         .attr("data-dis", d[2])
