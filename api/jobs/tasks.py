@@ -13,7 +13,7 @@ import numpy as np
 import scipy.spatial as spatial
 import requests
 
-BASE_COORDINATE_FILENAME = 'base_coordinate.scv'
+BASE_COORDINATE_FILENAME = 'base.scv'
 
 
 @shared_task()
@@ -29,13 +29,18 @@ def create_job(instance_id):
     base_coord_file = download_base_coordinates(job, work_dir)
     point_count = count_points(base_coord_file)
 
-    make_base_preview_image(base_coord_file)
-    distance_matrix_file = make_dipha_distance_matrix(base_coord_file, point_count)
-    proc, output_file = make_dipha_process(distance_matrix_file)
+    print('data file downloaded')
+
+    # make_base_preview_image(base_coord_file)
+    distance_matrix_file = make_dipha_distance_matrix(base_coord_file, point_count, 'base')
+    print('base distance matrix created')
+
+    proc, output_file = make_dipha_process(distance_matrix_file, 'base')
     proc.communicate()
     if proc.returncode != 0:
         raise Exception("DIPHA error")
-    base_diagram_file = extract_persistence_diagram(distance_matrix_file)
+    base_diagram_file = extract_persistence_diagram(output_file, 'base')
+    print('base diagram created')
 
     # process by angle
     results = []
@@ -43,12 +48,13 @@ def create_job(instance_id):
     for zx_angle in angle_range:
         for zy_angle in angle_range:
             print(['processing angle', zx_angle, zy_angle])
-            rotated_coordinate_file = make_rotated_coordinate_file(base_coord_file, zx_angle, zy_angle)
-            rotated_dipha_input_file = make_dipha_distance_matrix(rotated_coordinate_file, point_count)
-            proc, rotated_output_file = make_dipha_process(rotated_dipha_input_file)
+            basename = 'rotated_%s__%s' % (zx_angle, zy_angle)
+            rotated_coordinate_file = make_rotated_coordinate_file(base_coord_file, zx_angle, zy_angle, basename)
+            rotated_dipha_input_file = make_dipha_distance_matrix(rotated_coordinate_file, point_count, basename)
+            proc, rotated_output_file = make_dipha_process(rotated_dipha_input_file, basename)
 
             # create preview image before checking sub process status
-            make_projection_preview_image(rotated_coordinate_file)
+            # make_projection_preview_image(rotated_coordinate_file, basename)
 
             while proc.poll() is None:
                 sleep(1)
@@ -56,7 +62,7 @@ def create_job(instance_id):
             if proc.returncode != 0:
                 raise Exception("error")
 
-            project_diagram_file = extract_persistence_diagram(rotated_output_file)
+            project_diagram_file = extract_persistence_diagram(rotated_output_file, basename)
             b_distance = bottleneck_distance(base_diagram_file, project_diagram_file)
             results.append([zx_angle, zy_angle, b_distance])
             break
@@ -66,14 +72,14 @@ def create_job(instance_id):
         # job.percentage = round(5 + count / total_angles * 95, 2)
         # job.save(update_fields=['percentage'])
 
-    job.status = 0
-    job.percentage = 100
-    job.outputs = {
-        'best_projection': min(results, key=lambda item: item[2]),
-        'worst_projection': max(results, key=lambda item: item[2]),
-        'bottleneck_distances': results,
-    }
-    job.save()
+    # job.status = 0
+    # job.percentage = 100
+    # job.outputs = {
+    #     'best_projection': min(results, key=lambda item: item[2]),
+    #     'worst_projection': max(results, key=lambda item: item[2]),
+    #     'bottleneck_distances': results,
+    # }
+    # job.save()
 
 
 def rotate_coordinates(row, angle, dim1, dim2):
@@ -122,8 +128,8 @@ def count_points(coordinates_file):
     return count
 
 
-def make_rotated_coordinate_file(coordinate_file, zx_angle, zy_angle, ):
-    rotated_file_path = path.join(path.dirname(coordinate_file), 'rotated_%s__%s.csv' % (zx_angle, zy_angle))
+def make_rotated_coordinate_file(coordinate_file, zx_angle, zy_angle, basename):
+    rotated_file_path = path.join(path.dirname(coordinate_file), '%s.csv' % basename)
 
     with open(coordinate_file) as base_file, open(rotated_file_path, 'w') as rotated_file:
         for line in base_file:
@@ -135,8 +141,8 @@ def make_rotated_coordinate_file(coordinate_file, zx_angle, zy_angle, ):
     return rotated_file_path
 
 
-def make_projection_preview_image(coordinates_file):
-    image_file_path = path.join(path.splitext(coordinates_file)[0], '-preview.png')
+def make_projection_preview_image(coordinates_file, basename):
+    image_file_path = path.join(path.dirname(coordinates_file), '%s-preview.png' % basename)
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -174,84 +180,83 @@ def make_base_preview_image(coordinates_file):
     plt.close()
 
 
-def make_dipha_distance_matrix(coordinate_file, point_count):
-    input_file = path.splitext(coordinate_file)[0] + "-dipha-input.bin"
+def make_dipha_distance_matrix(coordinate_file, point_count, basename):
+    input_file = path.join(path.dirname(coordinate_file), '%s-dipha-input.bin' % basename)
 
-    col_file = open(coordinate_file)
-    row_file = open(coordinate_file)
     dis_file = open(input_file, 'wb')
 
     dis_file.write(np.int64(8067171840).tobytes())  # DIPHA magic number
     dis_file.write(np.int64(7).tobytes())  # DIPHA file type code
     dis_file.write(np.int64(point_count).tobytes())
 
-    for col_line in col_file.readlines():
-        point_col = [float(i) for i in col_line.strip().split(",")]
-        for row_line in row_file.readlines():
-            point_row = [float(i) for i in row_line.strip().split(",")]
-            distance = spatial.distance.euclidean(point_col, point_row)
-            dis_file.write(np.float64(distance).tobytes())
-        row_file.seek(0)
+    with open(coordinate_file) as col_file:
+        for col_line in col_file:
+            point_col = [float(i) for i in col_line.strip().split(",")]
+            with open(coordinate_file) as row_file:
+                for row_line in row_file:
+                    point_row = [float(i) for i in row_line.strip().split(",")]
+                    distance = spatial.distance.euclidean(point_col, point_row)
+                    dis_file.write(np.double(distance).tobytes())
 
-    col_file.close()
-    row_file.close()
     dis_file.close()
 
     return input_file
 
 
-def make_dipha_process(input_file, upper_dims=2):
-    output_file = path.splitext(input_file)[0] + '-dipha-output.bin'
+def make_dipha_process(input_file, basename, upper_dims=2):
+    output_file = path.join(path.dirname(input_file), '%s-dipha-output.bin' % basename)
     command = 'dipha --upper_dim %i %s %s' % (upper_dims, input_file, output_file)
     return Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True), output_file
 
 
-def extract_persistence_diagram(file_path):
+def extract_persistence_diagram(file_path, basename):
+    work_dir = path.dirname(file_path)
     f = open(file_path, 'rb')
 
     dipha_identifier = np.fromfile(f, dtype=np.int64, count=1)
     if dipha_identifier[0] != 8067171840:
-        raise Exception('invalid dipha_identifier')
+        raise Exception('invalid dipha_identifier: %s' % dipha_identifier)
 
     diagram_identifier = np.fromfile(f, dtype=np.int64, count=1)
     if diagram_identifier[0] != 2:
-        raise Exception('invalid diagram_identifier')
+        raise Exception('invalid diagram_identifier: %s' % diagram_identifier)
 
     point_number = np.fromfile(f, dtype=np.int64, count=1)
     point_number = point_number[0]
 
     name_prefix = path.splitext(file_path)[0]
-    dim_file = open(name_prefix + "-dims.val", 'w')
-    birth_file = open(name_prefix + "-birth.val", 'w')
-    death_file = open(name_prefix + "-death.val", 'w')
+    dims_file_path = path.join(work_dir, '%s-dims.csv' % basename)
+    birth_file_path = path.join(work_dir, '%s-birth.csv' % basename)
+    death_file_path = path.join(work_dir, '%s-death.csv' % basename)
 
-    for _ in range(0, point_number):
-        dim = np.fromfile(f, dtype=np.int64, count=1)[0]
-        dim_file.write("%s\n" % dim)
-        f.read(16)
+    with open(dims_file_path, 'w') as dims_file, \
+            open(birth_file_path, 'w') as birth_file, \
+            open(death_file_path, 'w') as death_file:
 
-    f.seek(32)
-    for _ in range(0, point_number):
-        birth = np.fromfile(f, dtype=np.double, count=1)[0]
-        birth_file.write("%s\n" % birth)
-        f.read(16)
+        for _ in range(0, point_number):
+            dim = np.fromfile(f, dtype=np.int64, count=1)[0]
+            dims_file.write("%s\n" % dim)
+            f.read(16)
 
-    f.seek(40)
-    for _ in range(0, point_number):
-        death = np.fromfile(f, dtype=np.double, count=1)[0]
-        death_file.write("%s\n" % death)
-        f.read(16)
+        f.seek(32)
+        for _ in range(0, point_number):
+            birth = np.fromfile(f, dtype=np.double, count=1)[0]
+            birth_file.write("%s\n" % birth)
+            f.read(16)
 
-    dim_file.close()
-    birth_file.close()
-    death_file.close()
+        f.seek(40)
+        for _ in range(0, point_number):
+            death = np.fromfile(f, dtype=np.double, count=1)[0]
+            death_file.write("%s\n" % death)
+            f.read(16)
 
     diagram_file_path = name_prefix + '-diagram.csv'
 
     with open(diagram_file_path, 'w') as diagram, \
-            open(name_prefix + "-dims.csv") as dim, \
-            open(name_prefix + "-birth.csv") as birth, \
-            open(name_prefix + "-death.csv") as death:
+            open(dims_file_path) as dim, \
+            open(birth_file_path) as birth, \
+            open(death_file_path) as death:
+
         for _ in range(0, point_number):
             dim_value = dim.readline().strip()
             birth_value = birth.readline().strip()
