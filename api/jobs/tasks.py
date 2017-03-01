@@ -1,14 +1,12 @@
-from os import path, makedirs, chdir
+from os import path, makedirs, chdir, remove
 from celery import shared_task
 from math import sin, cos, pi
 from django.conf import settings
 from django.utils import timezone
 from subprocess import Popen, PIPE
-from time import sleep
-from matplotlib import pyplot as plt
+from time import sleep, time
 from matplotlib import animation
 from mpl_toolkits.mplot3d import Axes3D
-import time
 import numpy as np
 import scipy.spatial as spatial
 import requests
@@ -31,7 +29,7 @@ def create_job(instance_id):
 
     print('data file downloaded')
 
-    # make_base_preview_image(base_coord_file)
+    make_base_preview_image(base_coord_file, 'base')
     distance_matrix_file = make_dipha_distance_matrix(base_coord_file, point_count, 'base')
     print('base distance matrix created')
 
@@ -48,30 +46,36 @@ def create_job(instance_id):
     for zx_angle in angle_range:
         for zy_angle in angle_range:
             print(['processing angle', zx_angle, zy_angle])
-            basename = 'rotated_%s__%s' % (zx_angle, zy_angle)
-            rotated_coordinate_file = make_rotated_coordinate_file(base_coord_file, zx_angle, zy_angle, basename)
-            rotated_dipha_input_file = make_dipha_distance_matrix(rotated_coordinate_file, point_count, basename)
-            proc, rotated_output_file = make_dipha_process(rotated_dipha_input_file, basename)
+            proj_basename = 'rotated_%s__%s' % (zx_angle, zy_angle)
+            rotated_coordinate_file = make_rotated_coordinate_file(base_coord_file, zx_angle, zy_angle, proj_basename)
+
+            print('[%f] created rotated file' % time())
+            rotated_dipha_input_file = make_dipha_distance_matrix(rotated_coordinate_file, point_count, proj_basename)
+
+            print('[%f] created dipha input file' % time())
+            proc, rotated_output_file = make_dipha_process(rotated_dipha_input_file, proj_basename)
 
             # create preview image before checking sub process status
-            # make_projection_preview_image(rotated_coordinate_file, basename)
+            make_projection_preview_image(rotated_coordinate_file, proj_basename)
 
             while proc.poll() is None:
-                sleep(1)
+                sleep(0.5)
 
+            print('[%f] DIPHA completed' % time())
             if proc.returncode != 0:
                 raise Exception("error")
 
-            project_diagram_file = extract_persistence_diagram(rotated_output_file, basename)
-            dis = calculate_bottleneck_distance(base_diagram_file, project_diagram_file, basename)
+            project_diagram_file = extract_persistence_diagram(rotated_output_file, proj_basename)
+            dis = calculate_bottleneck_distance(base_diagram_file, project_diagram_file, proj_basename)
             results.append([zx_angle, zy_angle, dis])
 
-        # count += 1
-        # job.percentage = round(5 + count / total_angles * 95, 2)
-        # job.save(update_fields=['percentage'])
+            # count += 1
+            # job.percentage = round(5 + count / total_angles * 95, 2)
+            # job.save(update_fields=['percentage'])
 
     job.status = 0
     job.percentage = 100
+    job.completed_at = timezone.now()
     job.outputs = {
         'best_projection': min(results, key=lambda item: item[2]),
         'worst_projection': max(results, key=lambda item: item[2]),
@@ -90,7 +94,7 @@ def rotate_coordinates(row, angle, dim1, dim2):
 
 
 def create_work_dir(job):
-    job.ticket = '%s_%s' % (job.id, int(time.time()))
+    job.ticket = '%s_%s' % (job.id, int(time()))
     job.save(update_fields=['ticket'])
     work_dir = path.join(settings.DATA_DIR, 'jobs', job.ticket)
     makedirs(work_dir)
@@ -142,6 +146,8 @@ def make_rotated_coordinate_file(coordinate_file, zx_angle, zy_angle, basename):
 def make_projection_preview_image(coordinates_file, basename):
     image_file_path = path.join(path.dirname(coordinates_file), '%s-preview.png' % basename)
 
+    from matplotlib import pyplot as plt
+
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
@@ -158,8 +164,10 @@ def make_projection_preview_image(coordinates_file, basename):
     plt.close()
 
 
-def make_base_preview_image(coordinates_file):
-    image_file_path = path.join(path.dirname(coordinates_file), 'base_preview.gif')
+def make_base_preview_image(coordinates_file, basename):
+    image_file_path = path.join(path.dirname(coordinates_file), '%s-preview.gif' % basename)
+
+    from matplotlib import pyplot as plt
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection=Axes3D.name)
@@ -203,7 +211,7 @@ def make_dipha_distance_matrix(coordinate_file, point_count, basename):
 
 def make_dipha_process(input_file, basename, upper_dims=2):
     output_file = path.join(path.dirname(input_file), '%s-dipha-output.bin' % basename)
-    command = 'dipha --upper_dim %i %s %s' % (upper_dims, input_file, output_file)
+    command = 'mpiexec -n 8 dipha --upper_dim %i %s %s' % (upper_dims, input_file, output_file)
     return Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True), output_file
 
 
@@ -222,7 +230,6 @@ def extract_persistence_diagram(file_path, basename):
     point_number = np.fromfile(f, dtype=np.int64, count=1)
     point_number = point_number[0]
 
-    name_prefix = path.splitext(file_path)[0]
     dims_file_path = path.join(work_dir, '%s-dims.csv' % basename)
     birth_file_path = path.join(work_dir, '%s-birth.csv' % basename)
     death_file_path = path.join(work_dir, '%s-death.csv' % basename)
@@ -260,6 +267,10 @@ def extract_persistence_diagram(file_path, basename):
             birth_value = birth.readline().strip()
             death_value = death.readline().strip()
             diagram.write("{},{},{}\n".format(dim_value, birth_value, death_value))
+
+    remove(dims_file_path)
+    remove(birth_file_path)
+    remove(death_file_path)
 
     return diagram_file_path
 
