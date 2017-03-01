@@ -1,4 +1,4 @@
-from os import path, makedirs
+from os import path, makedirs, chdir
 from celery import shared_task
 from math import sin, cos, pi
 from django.conf import settings
@@ -63,23 +63,21 @@ def create_job(instance_id):
                 raise Exception("error")
 
             project_diagram_file = extract_persistence_diagram(rotated_output_file, basename)
-            b_distance = bottleneck_distance(base_diagram_file, project_diagram_file)
-            results.append([zx_angle, zy_angle, b_distance])
-            break
-        break
+            dis = calculate_bottleneck_distance(base_diagram_file, project_diagram_file, basename)
+            results.append([zx_angle, zy_angle, dis])
 
         # count += 1
         # job.percentage = round(5 + count / total_angles * 95, 2)
         # job.save(update_fields=['percentage'])
 
-    # job.status = 0
-    # job.percentage = 100
-    # job.outputs = {
-    #     'best_projection': min(results, key=lambda item: item[2]),
-    #     'worst_projection': max(results, key=lambda item: item[2]),
-    #     'bottleneck_distances': results,
-    # }
-    # job.save()
+    job.status = 0
+    job.percentage = 100
+    job.outputs = {
+        'best_projection': min(results, key=lambda item: item[2]),
+        'worst_projection': max(results, key=lambda item: item[2]),
+        'bottleneck_distances': results,
+    }
+    job.save()
 
 
 def rotate_coordinates(row, angle, dim1, dim2):
@@ -250,7 +248,7 @@ def extract_persistence_diagram(file_path, basename):
             death_file.write("%s\n" % death)
             f.read(16)
 
-    diagram_file_path = name_prefix + '-diagram.csv'
+    diagram_file_path = path.join(work_dir, '%s-diagram.csv' % basename)
 
     with open(diagram_file_path, 'w') as diagram, \
             open(dims_file_path) as dim, \
@@ -266,5 +264,19 @@ def extract_persistence_diagram(file_path, basename):
     return diagram_file_path
 
 
-def bottleneck_distance(base_diagram, project_diagram):
-    return 0
+def calculate_bottleneck_distance(base_diagram_file, project_diagram_file, basename):
+    work_dir = path.dirname(base_diagram_file)
+    base_filename = path.basename(base_diagram_file)
+    proj_filename = path.basename(project_diagram_file)
+    out_filename = '%s.txt' % basename
+
+    chdir(path.join(settings.BASE_DIR, 'scripts'))
+    command = 'Rscript bottleneck_distance.r %s %s %s %s' % (work_dir, base_filename, proj_filename, out_filename)
+    proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    proc.communicate()
+
+    out_file_path = path.join(work_dir, out_filename)
+    with open(out_file_path) as f:
+        value = float(f.read())
+
+    return value
