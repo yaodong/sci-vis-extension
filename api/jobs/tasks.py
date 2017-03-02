@@ -42,7 +42,9 @@ def create_job(instance_id):
 
     # process by angle
     results = []
+    count = 0
     angle_range = range(-90, 90, 5)
+    total_angles = pow(len(angle_range), 2)
     for zx_angle in angle_range:
         for zy_angle in angle_range:
             print(['processing angle', zx_angle, zy_angle])
@@ -69,9 +71,9 @@ def create_job(instance_id):
             dis = calculate_bottleneck_distance(base_diagram_file, project_diagram_file, proj_basename)
             results.append([zx_angle, zy_angle, dis])
 
-            # count += 1
-            # job.percentage = round(5 + count / total_angles * 95, 2)
-            # job.save(update_fields=['percentage'])
+            count += 1
+            job.percentage = round(5 + count / total_angles * 95, 2)
+            job.save(update_fields=['percentage'])
 
     job.status = 0
     job.percentage = 100
