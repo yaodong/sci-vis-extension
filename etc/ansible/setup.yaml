@@ -58,6 +58,7 @@
         - postgresql-client
         - libpq-dev
         - imagemagick
+        - mpich
 
     - name: mkdirs for demo
       file: path=/srv/demo state=directory owner=demo group=demo
