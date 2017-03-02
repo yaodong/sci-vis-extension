@@ -1,0 +1,2 @@
+networkx==1.11
+python-igraph==0.7.1.post6

@@ -33,12 +33,12 @@
       </td>
       <!-- preview KED -->
       <td class="job-info__cell">
-        <div class="job-info__key">KDE Diagram (3D)</div>
+        <div class="job-info__key">Persistence Diagram (3D)</div>
         <div class="job-info__value -image">
-          {{light-box href=kdeImageUrl
-                      data-lightbox="job-info"
-                      data-title="KDE Diagram (3D)"
-                      data-class="job-info__image"}}
+          {{light-box href=persistenceDiagramUrl
+              data-lightbox="job-info"
+              data-title="KDE Diagram (3D)"
+              data-class="job-info__image"}}
           <small class="help-block">Click to enlarge</small>
         </div>
       </td>
@@ -73,16 +73,16 @@
         <li class="inspector__section">
           <div class="inspector__key">Projection (2D)</div>
           <div class="inspector__value">
-            {{inspector-diagram model=model zx=zx zy=zy title="Projection (2D)"}}
+            {{inspector-diagram model=model zx=zx zy=zy title="Projection (2D)" type="preview"}}
             <small class="help-block">Click to enlarge</small>
           </div>
         </li>
 
-        <!-- KDE -->
+        <!-- PD -->
         <li class="inspector__section">
-          <div class="inspector__key">KDE Diagram (2D)</div>
+          <div class="inspector__key">Persistence Diagram (2D)</div>
           <div class="inspector__value">
-            {{inspector-diagram model=model zx=zx zy=zy title="KDE Diagram (2D)" prefix="diagram_"}}
+            {{inspector-diagram model=model zx=zx zy=zy title="Persistence Diagram (2D)" type="diagram"}}
             <small class="help-block">Click to enlarge</small>
           </div>
         </li>

@@ -20,11 +20,11 @@ export default Ember.Controller.extend({
   }),
 
   imageBaseUrl: Ember.computed("model", function() {
-    return Config.APP.API_HOST + "/static/jobs/"+ this.get("model.ticket") + "/images";
+    return Config.APP.API_HOST + "/static/jobs/"+ this.get("model.ticket");
   }),
 
   previewImgUrl: Ember.computed("imageBaseUrl", function() {
-    return this.get("imageBaseUrl") + "/preview.gif";
+    return this.get("imageBaseUrl") + "/base-preview.gif";
   }),
 
   kdeImageUrl: Ember.computed("imageBaseUrl", function() {
