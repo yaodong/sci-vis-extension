@@ -282,7 +282,7 @@ def calculate_bottleneck_distance(base_diagram_file, project_diagram_file, basen
     out_filename = '%s.txt' % basename
 
     chdir(path.join(settings.BASE_DIR, 'scripts'))
-    command = 'Rscript bottleneck_distance.r %s %s %s %s' % (work_dir, base_filename, proj_filename, out_filename)
+    command = 'Rscript bottleneck_distance.r %s %s %s %s %s' % (work_dir, base_filename, proj_filename, out_filename, work_dir)
     proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     proc.communicate()
 

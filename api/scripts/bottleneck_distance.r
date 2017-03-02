@@ -5,6 +5,7 @@ work_dir = args[1]
 base_filename = args[2]
 proj_filename = args[3]
 out_filename = args[4]
+work_dir = args[5]
 
 library("TDA")
 
@@ -25,8 +26,8 @@ proj_diagram <- cbind(proj_data[,1], proj_data[,2], proj_data[,3])
 bottleneckDist <- bottleneck(base_diagram, proj_diagram, dimension = 1)
 write(bottleneckDist, file = out_file)
 
-#png(file=paste(dirname, "/images/diagram_", toString(zx_angle), "__", toString(zy_angle), ".png", sep=""), width=1280, height=1280, res=200, units="px")
+png(file=paste(work_dir, "/diagram_", toString(zx_angle), "__", toString(zy_angle), ".png", sep=""), width=1280, height=1280, res=200, units="px")
 
-#plot(proj_diagram, main = "Persistence Diagram")
+plot(proj_diagram, main = "Persistence Diagram")
 
 dev.off()
