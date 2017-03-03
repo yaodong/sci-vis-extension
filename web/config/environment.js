@@ -44,7 +44,7 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-    ENV.APP.API_HOST = 'http://demo-singer-api.yaodong.org'
+    ENV.APP.API_HOST = 'https://demo-singer-api.yaodong.org'
   }
 
   return ENV;

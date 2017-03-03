@@ -10,7 +10,7 @@
       git: repo=git@github.com:yaodong/dimension-reduction-webapp.git
            dest=/srv/demo/dimension-reduction
            accept_hostkey=True 
-           version=develop
+           version=release/v0.2
     
     - name: pip update
       pip: name=pip state=latest executable=~/.pyenv/shims/pip
