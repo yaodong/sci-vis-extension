@@ -29,7 +29,6 @@ def create_job(instance_id):
 
     print('data file downloaded')
 
-    make_base_preview_image(base_coord_file, 'base')
     distance_matrix_file = make_dipha_distance_matrix(base_coord_file, point_count, 'base')
     print('base distance matrix created')
 
@@ -42,7 +41,9 @@ def create_job(instance_id):
 
     # process by angle
     results = []
+    count = 0
     angle_range = range(-90, 90, 5)
+    total_angles = pow(len(angle_range), 2)
     for zx_angle in angle_range:
         for zy_angle in angle_range:
             print(['processing angle', zx_angle, zy_angle])
@@ -69,9 +70,9 @@ def create_job(instance_id):
             dis = calculate_bottleneck_distance(base_diagram_file, project_diagram_file, proj_basename)
             results.append([zx_angle, zy_angle, dis])
 
-            # count += 1
-            # job.percentage = round(5 + count / total_angles * 95, 2)
-            # job.save(update_fields=['percentage'])
+            count += 1
+            job.percentage = round(5 + count / total_angles * 95, 2)
+            job.save(update_fields=['percentage'])
 
     job.status = 0
     job.percentage = 100
@@ -82,6 +83,8 @@ def create_job(instance_id):
         'bottleneck_distances': results,
     }
     job.save()
+
+    make_base_preview_image(base_coord_file, 'base')
 
 
 def rotate_coordinates(row, angle, dim1, dim2):
@@ -173,12 +176,14 @@ def make_base_preview_image(coordinates_file, basename):
     ax = fig.add_subplot(111, projection=Axes3D.name)
 
     def init():
+        print('init animate')
         with open(coordinates_file) as f:
             for line in f:
                 x, y, z = [float(i) for i in line.rstrip().split(',')]
                 ax.scatter(x, y, z, s=2, alpha=0.7, c="m")
 
     def animate(i):
+        print('frame %i' % i)
         ax.view_init(elev=i * 5, azim=i * 5)
 
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
@@ -195,9 +200,12 @@ def make_dipha_distance_matrix(coordinate_file, point_count, basename):
     dis_file.write(np.int64(7).tobytes())  # DIPHA file type code
     dis_file.write(np.int64(point_count).tobytes())
 
+    count = 1
     with open(coordinate_file) as col_file:
         for col_line in col_file:
             point_col = [float(i) for i in col_line.strip().split(",")]
+            print('line done %i' % count)
+            count += 1
             with open(coordinate_file) as row_file:
                 for row_line in row_file:
                     point_row = [float(i) for i in row_line.strip().split(",")]
