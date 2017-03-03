@@ -1,46 +1,100 @@
 <div class="row stage-header">
-  <div class="col-sm-6 stage-title">{{model.name}} <small>#{{model.id}}</small></div>
+  <div class="col-sm-6 stage-title">{{model.name}}
+    <small>#{{model.id}}</small>
+  </div>
   <div class="col-sm-6 text-right">{{#link-to "jobs.index" class="btn btn-default"}}Back to List{{/link-to}}</div>
 </div>
 
 <div class="widget">
-  <h3 class="widget__title">Result</h3>
-  <ul class="result-detail">
-    <li>
-      <strong>Best Direction</strong> [{{model.outputs.best_projection.[0]}}, {{model.outputs.best_projection.[1]}}]
-    </li>
-    <li>
-      <strong>Bottleneck Distance</strong> {{model.outputs.best_projection.[2]}}
-    </li>
-    <li>
-      {{light-box href=previewImgUrl
-          data-lightbox="preview"
-          data-title="preview"
-          data-class="preview-3d"}}
-    </li>
-  </ul>
+  <h3 class="widget__title">Info</h3>
+  <table class="table job-info">
+    <tr>
+      <!-- best result -->
+      <td class="job-info__cell">
+        <div class="job-info__key">Best Direction</div>
+        <div class="job-info__value">
+          [{{model.outputs.best_projection.[0]}}, {{model.outputs.best_projection.[1]}}]
+        </div>
+        <div class="job-info__key">Shortest Bottleneck Distance</div>
+        <div class="job-info__value">
+          {{model.outputs.best_projection.[2]}}
+        </div>
+      </td>
+      <!-- preview (3d) -->
+      <td class="job-info__cell">
+        <div class="job-info__key">Preview (3D)</div>
+        <div class="job-info__value">
+          {{light-box href=previewImgUrl
+                      data-lightbox="job-info"
+                      data-title="Preview (3D)"
+                      data-class="job-info__image"}}
+          <small class="help-block">Click to enlarge</small>
+        </div>
+      </td>
+      <!-- preview KED -->
+      <td class="job-info__cell">
+        <div class="job-info__key">Persistence Diagram (3D)</div>
+        <div class="job-info__value -image">
+          {{light-box href=persistenceDiagramUrl
+              data-lightbox="job-info"
+              data-title="KDE Diagram (3D)"
+              data-class="job-info__image"}}
+          <small class="help-block">Click to enlarge</small>
+        </div>
+      </td>
+    </tr>
+  </table>
 </div>
 
-<div class="widget">
+<div class="widget inspector">
+  <h3 class="widget__title">Inspector</h3>
   <div class="row">
-    <div class="col-md-4 js-preview-detail">
-      <div class="preview-detail">
-        <strong>Bottleneck Distance</strong>
-        <p class="js--distance">{{distance}}</p>
-      </div>
-      <div class="preview-detail">
-        <strong>Direction</strong>
-        <p class="js--direction">[{{zx}}, {{zy}}]</p>
-      </div>
-      <div class="preview-detail">
-        <strong>Projection Image</strong>
-        <p class="js--image projection-images">
-          {{detail-images model=model zx=zx zy=zy className="projection-plot"}}
-        </p>
-      </div>
-    </div>
+    <div class="col-md-4">
+      <ul class="inspector__info">
+        <!-- distance -->
+        <li class="inspector__section">
+          <div class="inspector__key">
+            Bottleneck Distance
+          </div>
+          <div class="inspector__value">
+            {{distance}}
+          </div>
+        </li>
+
+        <!-- direction -->
+        <li class="inspector__section">
+          <div class="inspector__key">Direction</div>
+          <div class="inspector__value">
+            [{{zx}}, {{zy}}]
+          </div>
+        </li>
+
+        <!-- projection image -->
+        <li class="inspector__section">
+          <div class="inspector__key">Projection (2D)</div>
+          <div class="inspector__value">
+            {{inspector-diagram model=model zx=zx zy=zy title="Projection (2D)" type="preview"}}
+            <small class="help-block">Click to enlarge</small>
+          </div>
+        </li>
+
+        <!-- PD -->
+        <li class="inspector__section">
+          <div class="inspector__key">Persistence Diagram (2D)</div>
+          <div class="inspector__value">
+            {{inspector-diagram model=model zx=zx zy=zy title="Persistence Diagram (2D)" type="diagram"}}
+            <small class="help-block">Click to enlarge</small>
+          </div>
+        </li>
+      </ul>
+    </div><!-- .col-md-4 -->
     <div class="col-md-8">
       {{result-sphere outputs=model.outputs directionChanged=(action "directionChanged")}}
+      <small class="help-block">
+        1. Each diamond represents a direction of projection. Click it to inspect the result.<br />
+        2. Drag the sphere to rotate.<br />
+        3. The best direction is marked by a diamond with red border.
+      </small>
     </div>
   </div>
 </div>

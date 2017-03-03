@@ -21,7 +21,7 @@ module.exports = function(deployTarget) {
     // configure other plugins for production deploy target here
     ENV['scp'] = {
       username: 'demo',
-      host: '192.81.135.167',
+      host: '45.33.41.170',
       path: '/srv/demo/frontend'
     }
   }

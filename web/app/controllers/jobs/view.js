@@ -20,17 +20,15 @@ export default Ember.Controller.extend({
   }),
 
   imageBaseUrl: Ember.computed("model", function() {
-    return Config.APP.API_HOST + "/static/jobs/"+ this.get("model.ticket") + "/images";
+    return Config.APP.API_HOST + "/static/jobs/"+ this.get("model.ticket");
   }),
 
   previewImgUrl: Ember.computed("imageBaseUrl", function() {
-    return this.get("imageBaseUrl") + "/preview.gif";
+    return this.get("imageBaseUrl") + "/base-preview.gif";
   }),
 
-  projectionImageUrl: Ember.computed("model", "imageBaseUrl", "zx", "zy", function() {
-    let results = this.get("model.outputs.bottleneck_distances");
-    let baseUrl = this.get("imageBaseUrl");
-    return baseUrl + '/' + this.get("zx") + '__' + this.get("zy") + '.png';
+  kdeImageUrl: Ember.computed("imageBaseUrl", function() {
+    return this.get("imageBaseUrl") + "/diagram_base.png";
   }),
 
   actions: {
