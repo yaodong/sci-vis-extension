@@ -25,6 +25,34 @@ def drop_args(*args):
 
 
 @shared_task()
+def direction_task(base_diagram_file, dipha_out_file, zx_angle, zy_angle, base_name):
+    rotated_diagram = extract_persistence_diagram(dipha_out_file, base_name)
+    return calculate_bottleneck_distance(rotated_diagram, base_diagram_file, [zx_angle, zy_angle])
+
+
+@shared_task()
+def dispath_dipha(distance_matrix_files, job_id):
+    out_files = []
+    for bin_file in distance_matrix_files:
+        out_files.append(dipha(bin_file))
+
+    work_dir = path.dirname(distance_matrix_files[0])
+    base_diagram_file = path.join(work_dir, 'base.diagram')
+
+    tasks = []
+
+    for zx_angle, zy_angle in ANGLE_RANGE:
+        base_name = 'rotated_%s__%s' % (zx_angle, zy_angle)
+        dipha_out_file = path.join(work_dir, base_name + '-dipha.out')
+        tasks.append(direction_task.s(base_diagram_file, dipha_out_file, zx_angle, zy_angle, base_name))
+
+    chord(
+        header=tasks,
+        body=compose_results.s(job_id)
+    ).apply_async()
+
+
+@shared_task()
 def create_job(job_id, ticket=None):
     from jobs.models import Job
     job = Job.objects.get(pk=job_id)
@@ -38,35 +66,12 @@ def create_job(job_id, ticket=None):
 
     base_distance_matrix = generate_distance_matrix(base_coordinates_file, point_number, 'base-dipha')
     base_dipha_out_file = dipha(base_distance_matrix)
-    base_diagram_file = extract_persistence_diagram(base_dipha_out_file, 'base')
+    extract_persistence_diagram(base_dipha_out_file, 'base')
 
     chord(
-        header=before_dipha_tasks(base_coordinates_file, point_number),
-        body=chain(
-            dipha_tasks.s(),
-            chord(
-                header=after_dipha_tasks(base_coordinates_file, base_diagram_file),
-                body=compose_results.s(job.id)
-            ),
-            workflow_test.s(name="last")
-        ),
-    ).delay()
-
-
-def after_dipha_tasks(base_coordinates_file, base_diagram_file):
-    work_dir = path.dirname(base_coordinates_file)
-    tasks = []
-
-    # distance_matrix_files
-    for zx_angle, zy_angle in ANGLE_RANGE:
-        base_name = 'rotated_%s__%s' % (zx_angle, zy_angle)
-        dipha_out_file = path.join(work_dir, base_name + '-dipha.out')
-        tasks.append(chain(
-            extract_persistence_diagram.s(dipha_out_file, base_name),
-            calculate_bottleneck_distance.s(base_diagram_file, [zx_angle, zy_angle]),
-        ))
-
-    return tasks
+        header=preparing_dipha_input_tasks(base_coordinates_file, point_number),
+        body=dispath_dipha.s(job_id)
+    ).apply_async()
 
 
 @shared_task()
@@ -79,35 +84,38 @@ def compose_results(results, job_id):
     job.outputs = {
         'best_projection': min(results, key=lambda item: float(item[2])),
         'worst_projection': max(results, key=lambda item: float(item[2])),
-        'bottleneck_distances': results,
+        'bottleneck_distances': results
     }
     job.save()
 
 
 @shared_task()
 def workflow_test(*args, name="", time=2):
-    print('name [%s] %s' % (name, args))
+    print([name, args])
     sleep(time)
     return name
 
 
 @shared_task()
 def pass_args(*args):
-    print('pass args\n [%s]' % ','.join(map(str, args)))
+    logging.debug('pass args\n [%s]' % ','.join(map(str, args)))
     return args
 
 
-def before_dipha_tasks(base_coordinates_file, point_count):
+def preparing_dipha_input_tasks(base_coordinates_file, point_count):
     tasks = []
     for zx_angle, zy_angle in ANGLE_RANGE:
         base_name = 'rotated_%s__%s' % (zx_angle, zy_angle)
-        logging.info('generate task for %s' % base_name)
-        tasks.append(chain(
-            make_rotated_coordinate_file.s(base_coordinates_file, zx_angle, zy_angle, base_name),
-            generate_distance_matrix.s(point_count, base_name + '-dipha')
-        ))
+        logging.info('before dipha: %s' % base_name)
+        tasks.append(before_dipha_task.s(base_coordinates_file, zx_angle, zy_angle, point_count, base_name))
 
     return tasks
+
+
+@shared_task()
+def before_dipha_task(base_coordinates_file, zx_angle, zy_angle, point_count, base_name):
+    rotated_coordinates_file = make_rotated_coordinate_file(base_coordinates_file, zx_angle, zy_angle, base_name)
+    return generate_distance_matrix(rotated_coordinates_file, point_count, base_name + '-dipha')
 
 
 @shared_task()
@@ -178,7 +186,6 @@ def count_points(coordinates_file):
     return count
 
 
-@shared_task()
 def make_rotated_coordinate_file(base_coordinates_file, zx_angle, zy_angle, basename):
     rotated_file_path = path.join(path.dirname(base_coordinates_file), '%s.csv' % basename)
 
@@ -226,14 +233,14 @@ def make_base_preview_image(coordinates_file, basename):
     ax = fig.add_subplot(111, projection=Axes3D.name)
 
     def init():
-        print('init animate')
+        logging.info('init animate')
         with open(coordinates_file) as f:
             for line in f:
                 x, y, z = [float(i) for i in line.rstrip().split(',')]
                 ax.scatter(x, y, z, s=2, alpha=0.7, c="m")
 
     def animate(i):
-        print('frame %i' % i)
+        logging.info('frame %i' % i)
         ax.view_init(elev=i * 5, azim=i * 5)
 
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
@@ -241,7 +248,6 @@ def make_base_preview_image(coordinates_file, basename):
     plt.close()
 
 
-@shared_task()
 def generate_distance_matrix(coordinates_file, point_number, basename):
     file_path = path.join(path.dirname(coordinates_file), '%s.bin' % basename)
 
@@ -281,13 +287,14 @@ def dipha(input_file):
     command = 'mpiexec -n %i dipha --upper_dim 2 %s %s' % (CPU_CORE_COUNT, input_file, out_file)
     proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 
+    print('dipha %s' % path.basename(input_file))
+
     while proc.poll() is None:
         sleep(0.5)
 
     return out_file
 
 
-@shared_task()
 def extract_persistence_diagram(dipha_out_file, base_name):
     diagram_file_path = path.join(path.dirname(dipha_out_file), '%s.diagram' % base_name)
 
@@ -302,7 +309,7 @@ def extract_persistence_diagram(dipha_out_file, base_name):
 
     dipha_identifier = np.fromfile(f, dtype=np.int64, count=1)
     if dipha_identifier[0] != 8067171840:
-        raise Exception('invalid dipha_identifier: %s' % dipha_identifier)
+        raise Exception('invalid dipha_identifier: %s' % dipha_out_file)
 
     diagram_identifier = np.fromfile(f, dtype=np.int64, count=1)
     if diagram_identifier[0] != 2:
@@ -354,13 +361,12 @@ def extract_persistence_diagram(dipha_out_file, base_name):
     return diagram_file_path
 
 
-@shared_task()
 def calculate_bottleneck_distance(diagram_file, base_diagram_file, result_data):
     work_dir = path.dirname(base_diagram_file)
     base_filename = path.basename(base_diagram_file)
     proj_filename = path.basename(diagram_file)
     basename = path.splitext(path.basename(diagram_file))[0]
-    pic_filename = basename + '.png'
+    pic_filename = basename + '-diagram.png'
     val_filename = basename + '.txt'
     val_filepath = path.join(work_dir, val_filename)
 
@@ -370,7 +376,6 @@ def calculate_bottleneck_distance(diagram_file, base_diagram_file, result_data):
         chdir(path.join(settings.BASE_DIR, 'scripts'))
         command = 'Rscript bottleneck_distance.r %s %s %s %s %s' % (
             work_dir, base_filename, proj_filename, val_filename, pic_filename)
-        print(command)
         proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         while proc.poll() is None:
             sleep(0.3)
@@ -379,4 +384,3 @@ def calculate_bottleneck_distance(diagram_file, base_diagram_file, result_data):
         result_data.append(float(f.read()))
 
     return result_data
-
