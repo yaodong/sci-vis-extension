@@ -27,8 +27,8 @@ export default Ember.Controller.extend({
     return this.get("imageBaseUrl") + "/base-preview.gif";
   }),
 
-  kdeImageUrl: Ember.computed("imageBaseUrl", function() {
-    return this.get("imageBaseUrl") + "/diagram_base.png";
+  persistenceDiagramUrl: Ember.computed("imageBaseUrl", function() {
+    return this.get("imageBaseUrl") + "/base-diagram.png";
   }),
 
   actions: {
