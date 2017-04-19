@@ -14,7 +14,7 @@ import requests
 import itertools
 
 BASE_COORDINATE_FILENAME = 'base.csv'
-CPU_CORE_COUNT = multiprocessing.cpu_count()
+CPU_CORE_COUNT = multiprocessing.cpu_count() - 1
 
 ANGLE_RANGE = list(itertools.product(range(-90, 90, 5), repeat=2))
 
