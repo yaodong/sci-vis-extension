@@ -2,13 +2,7 @@ import DS from 'ember-data';
 
 export default DS.Model.extend({
   name: DS.attr('string'),
-  method: DS.attr('string'),
-  inputs: DS.attr(),
-  outputs: DS.attr(),
-  ticket: DS.attr('string'),
+  params: DS.attr(),
   status: DS.attr("number"),
-  startedAt: DS.attr('date'),
-  createdAt: DS.attr('date'),
-  completedAt: DS.attr('date'),
-  percentage: DS.attr("number")
+  createdAt: DS.attr('date')
 });

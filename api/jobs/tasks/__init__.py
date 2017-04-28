@@ -1,5 +1,5 @@
 from os import path, makedirs, chdir, remove
-from celery import shared_task, chord, chain, group
+from celery import shared_task, chord
 from math import sin, cos, pi
 from django.conf import settings
 from django.utils import timezone
@@ -7,16 +7,66 @@ from subprocess import Popen, PIPE
 from time import sleep, time
 from matplotlib import animation
 from mpl_toolkits.mplot3d import Axes3D
+from jobs.utils.files import make_work_folder, download_data_file
+from jobs.tasks.point_cloud import compute_point_cloud
+from jobs.tasks.graph import compute_graph
 import multiprocessing, logging
 import numpy as np
 import scipy.spatial as spatial
-import requests
-import itertools
 
-BASE_COORDINATE_FILENAME = 'base.csv'
-CPU_CORE_COUNT = multiprocessing.cpu_count() - 1
+# import itertools
 
-ANGLE_RANGE = list(itertools.product(range(-90, 90, 5), repeat=2))
+MAX_PROCESSES = multiprocessing.cpu_count() - 1
+
+
+@shared_task()
+def dispatch_computing(job_id):
+    from jobs.models import Job
+    job = Job.objects.get(pk=job_id)
+
+    work_dir = make_work_folder(job)
+    data_file = download_data_file(work_dir, job.param('file'))
+    data_format = job.param('data_format')
+
+    if data_format == 'point_cloud':
+        computing_handler = compute_point_cloud
+    elif data_format == 'graph':
+        computing_handler = compute_graph
+    else:
+        raise RuntimeError('unknown data format')
+
+    computing_handler.delay(job.id, data_file)
+
+
+# ================================================================
+#
+# Move the following code to tasks/* files
+# ================================================================
+
+
+# ANGLE_RANGE = list(itertools.product(range(-90, 90, 5), repeat=2))
+
+
+@shared_task()
+def create_job(job_id, ticket=None):
+    from jobs.models import Job
+    job = Job.objects.get(pk=job_id)
+    job.started_at = timezone.now()
+    job.percentage = 5
+    job.save(update_fields=['started_at', 'percentage'])
+
+    work_dir = make_work_folder(job, ticket)
+    base_coordinates_file = download_data_file(work_dir, job.inputs['file'])
+
+    point_number = count_points(base_coordinates_file)
+    base_distance_matrix = generate_distance_matrix(base_coordinates_file, point_number, 'base-dipha')
+    base_dipha_out_file = dipha(base_distance_matrix)
+    extract_persistence_diagram(base_dipha_out_file, 'base')
+
+    chord(
+        header=preparing_dipha_input_tasks(base_coordinates_file, point_number),
+        body=dispath_dipha.s(job_id)
+    ).apply_async()
 
 
 @shared_task()
@@ -60,8 +110,8 @@ def create_job(job_id, ticket=None):
     job.percentage = 5
     job.save(update_fields=['started_at', 'percentage'])
 
-    work_dir = prepare_work_dir(job, ticket)
-    base_coordinates_file = download_base_coordinates(work_dir, job.inputs['file'])
+    work_dir = make_work_folder(job, ticket)
+    base_coordinates_file = download_data_file(work_dir, job.inputs['file'])
     point_number = count_points(base_coordinates_file)
 
     base_distance_matrix = generate_distance_matrix(base_coordinates_file, point_number, 'base-dipha')
@@ -129,30 +179,6 @@ def dipha_tasks(input_files):
     return None
 
 
-def download_base_coordinates(work_dir, file_id):
-    file_path = path.join(work_dir, BASE_COORDINATE_FILENAME)
-
-    if path.isfile(file_path):
-        logging.info('skip downloading coordinates')
-        return file_path
-
-    file_meta_url = 'https://www.filestackapi.com/api/file/%s/metadata' % file_id
-    file_download_url = 'https://www.filestackapi.com/api/file/%s?dl=true' % file_id
-
-    meta_data = requests.get(file_meta_url).json()
-    if meta_data['mimetype'] != 'text/csv':
-        raise Exception("invalid base coordinates")
-
-    req = requests.get(file_download_url, stream=True)
-    with open(file_path, 'wb') as f:
-        for chunk in req.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-
-    logging.info('base coordinates downloaded')
-    return file_path
-
-
 def rotate_coordinates(row, angle, dim1, dim2):
     radian = angle * pi / 180.
     cos_alpha, sin_alpha = cos(radian), sin(radian)
@@ -160,18 +186,6 @@ def rotate_coordinates(row, angle, dim1, dim2):
     row[dim1] = cos_alpha * x - sin_alpha * y
     row[dim2] = sin_alpha * x + cos_alpha * y
     return row
-
-
-def prepare_work_dir(job, ticket=None):
-    if ticket is None:
-        ticket = '%s_%s' % (job.id, int(time()))
-        job.ticket = ticket
-        job.save(update_fields=['ticket'])
-
-    work_dir = path.join(settings.DATA_DIR, 'jobs', ticket)
-    makedirs(work_dir, exist_ok=True)
-
-    return work_dir
 
 
 def count_points(coordinates_file):
@@ -284,7 +298,7 @@ def dipha(input_file):
         logging.info('skip dipha')
         return out_file
 
-    command = 'mpiexec -n %i dipha --upper_dim 2 %s %s' % (CPU_CORE_COUNT, input_file, out_file)
+    command = 'mpiexec -n %i dipha --upper_dim 2 %s %s' % (MAX_PROCESSES, input_file, out_file)
     proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 
     print('dipha %s' % path.basename(input_file))

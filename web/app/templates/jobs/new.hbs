@@ -15,7 +15,7 @@
   {{#form-group label="Data Format"}}
     <div class="radio">
       <label>
-        <input type="radio" name="data_format" value="points" checked>
+        <input type="radio" name="data_format" value="point_cloud" checked>
         <strong>Point Cloud</strong>
       </label>
       <ul>
@@ -30,9 +30,9 @@
         <strong>Weighted Graph</strong>
       </label>
       <ul>
-        <li>Each line is a set of tab-separated values which represents a node ID, its weight and neighbors' IDs.</li>
-        <li>Line format: <code>{node ID}  {weight}  {neighbor 1}  {neighbor 1} ... </code></li>
-        <li>Line example: <code>1  1.5  2  3  4</code></li>
+        <li>Each line is a set of tab-separated values which represents a node ID, its edge, weight.</li>
+        <li>Line format: <code>{from node ID}  {to node ID}  {weight}</code></li>
+        <li>Line example: <code>1 2 5</code></li>
       </ul>
     </div>
   {{/form-group}}
