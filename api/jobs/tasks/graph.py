@@ -3,67 +3,71 @@ from os import path
 from celery import shared_task
 from jobs.utils.files import count_file_lines
 from jobs.utils.dipha import *
+from jobs.utils.graph import *
+from jobs.utils.sphere import *
+from jobs.utils.point_cloud import project_point_cloud
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import shortest_path
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import animation
 
 
 @shared_task()
 def compute_graph(job_id, data_file):
-    distance_matrix_file = generate_distance_matrix_file(data_file)
-    dipha_out_file = dipha_exec(distance_matrix_file)
-    diagram = parse_dipha_output(dipha_out_file, 'base')
+    work_dir = path.dirname(data_file)
 
-    # def dispath_dipha(distance_matrix_files, job_id):
-    #     out_files = []
-    #     for bin_file in distance_matrix_files:
-    #         out_files.append(dipha(bin_file))
-    #
-    #     work_dir = path.dirname(distance_matrix_files[0])
-    #     base_diagram_file = path.join(work_dir, 'base.diagram')
-    #
-    #     tasks = []
-    #
-    #     for zx_angle, zy_angle in ANGLE_RANGE:
-    #         base_name = 'rotated_%s__%s' % (zx_angle, zy_angle)
-    #         dipha_out_file = path.join(work_dir, base_name + '-dipha.out')
-    #         tasks.append(direction_task.s(base_diagram_file, dipha_out_file, zx_angle, zy_angle, base_name))
-    #
-    #     chord(
-    #         header=tasks,
-    #         body=compose_results.s(job_id)
-    #     ).apply_async()
-    #
-    # point_number = count_points(base_coordinates_file)
-    # base_distance_matrix = generate_distance_matrix(base_coordinates_file, point_number, 'base-dipha')
-    # base_dipha_out_file = dipha(base_distance_matrix)
-    # extract_persistence_diagram(base_dipha_out_file, 'base')
-    #
-    # chord(
-    #     header=preparing_dipha_input_tasks(base_coordinates_file, point_number),
-    #     body=dispath_dipha.s(job_id)
-    # ).apply_async()
+    distance_matrix = compute_distance_matrix(data_file)
+
+    distance_matrix_file = path.join(work_dir, 'base_distance_matrix.bin')
+    save_dipha_distance_matrix(distance_matrix_file, distance_matrix)
+
+    points_file = path.join(work_dir, 'base_points')
+    points = multidimensional_scaling(distance_matrix)
+    make_base_preview_image(points, work_dir, 'base')
+
+    directions = random_directions()
+
+    for altitude, azimuth in directions:
+        projected_point_cloud = project_point_cloud(points, altitude, azimuth)
+        make_projection_preview_image(projected_point_cloud, work_dir, '%s_%s' % (altitude, azimuth))
 
 
-def generate_distance_matrix_file(file):
-    data = np.genfromtxt(file, dtype=[('from', np.intp), ('to', np.intp), ('weight', np.float)])
+def make_projection_preview_image(coordinates, work_dir, basename):
+    image_file_path = path.join(work_dir, '%s-preview.png' % basename)
 
-    max_node_id = 0
-    for row in data:
-        bigger_node = max([row[0], row[1]])
-        if max_node_id < bigger_node:
-            max_node_id = bigger_node
+    from matplotlib import pyplot as plt
 
-    graph = csr_matrix((max_node_id, max_node_id))
-    for node_from, node_to, weight in data:
-        graph[node_from - 1, node_to - 1] = weight
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
 
-    distance_matrix = shortest_path(graph, method='D', directed=False, unweighted=False)
-    matrix_file = path.join(path.dirname(file), 'base_distance_matrix')
+    for x, y in coordinates:
+        ax.scatter(x, y, s=2, alpha=0.7, c="m")
 
-    # save as numpy binary for debugging
-    np.save(matrix_file, distance_matrix)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
 
-    dipha_matrix_file = matrix_file + '.bin'
-    save_dipha_distance_matrix(dipha_matrix_file, distance_matrix)
+    plt.axis('equal')
+    plt.savefig(image_file_path, dpi=150)
+    plt.close()
 
-    return dipha_matrix_file
+
+def make_base_preview_image(coordinates, workdir, basename):
+    image_file_path = path.join(workdir, '%s-preview.gif' % basename)
+
+    from matplotlib import pyplot as plt
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection=Axes3D.name)
+
+    def init():
+        logging.info('init animate')
+        for x, y, z in coordinates:
+            ax.scatter(x, y, z, s=2, alpha=0.7, c="m")
+
+    def animate(i):
+        logging.info('frame %i' % i)
+        ax.view_init(elev=i * 5, azim=i * 5)
+
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
+    anim.save(image_file_path, writer='imagemagick', fps=8)
+    plt.close()
