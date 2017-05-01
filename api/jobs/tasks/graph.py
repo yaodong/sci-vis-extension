@@ -25,7 +25,7 @@ def compute_graph(job_id, data_file):
     points = multidimensional_scaling(distance_matrix)
     np.save(path.join(work_dir, 'base_points'), points)
 
-    # make_base_preview_image(points, work_dir, 'base')
+    make_base_preview_image(points, work_dir, 'base')
 
     directions = sphere_random_directions()
     for index, (altitude, azimuth) in enumerate(directions):
@@ -39,8 +39,7 @@ def compute_projected_graph(job, index, base_points, base_graph, base_diagram, w
     points = project_point_cloud(base_points, altitude, azimuth)
     np.save(path.join(work_dir, 'projected_%i_points' % index), points)
 
-    make_projection_preview_image(points, work_dir, index)
-    make_projection_preview_image_linked(points, base_graph, work_dir, index)
+    make_projection_preview_image(points, base_graph, work_dir, index, index, altitude, azimuth)
 
     distance_matrix = compute_points_distance_matrix(points)
 
@@ -55,46 +54,33 @@ def compute_projected_graph(job, index, base_points, base_graph, base_diagram, w
     job.output('bn_distance_%i' % index, bn_distance)
 
 
-def make_projection_preview_image(coordinates, work_dir, basename):
-    image_file_path = path.join(work_dir, '%s-preview.png' % basename)
+def make_projection_preview_image(coordinates, base_graph, work_dir, basename, index, altitude, azimuth):
+    image_path = path.join(work_dir, 'projected-%s-preview.png' % basename)
+    linked_image_path = path.join(work_dir, 'projected-%s-preview-linked.png' % basename)
 
     from matplotlib import pyplot as plt
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(111)
 
     for x, y in coordinates:
-        ax.scatter(x, y, s=2, alpha=0.7, c="m")
+        ax.scatter(x, y, s=4, c="orange", zorder=2, edgecolors='#FFFFFF', linewidths=0.2)
 
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
+    ax.xaxis.set_visible(False)
+    ax.yaxis.set_visible(False)
 
+    plt.title('direction #%i' % index, loc='left')
+    plt.title('altitude %s, azimuth %s' % (round(altitude, 3), round(azimuth, 3)), loc='right')
     plt.axis('equal')
-    plt.savefig(image_file_path, dpi=150)
-    plt.close()
-
-
-def make_projection_preview_image_linked(coordinates, base_graph, work_dir, basename):
-    image_file_path = path.join(work_dir, '%s-preview-linked.png' % basename)
-
-    from matplotlib import pyplot as plt
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-
-    for x, y in coordinates:
-        ax.scatter(x, y, s=2, alpha=0.7, c="m")
-
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
+    plt.savefig(image_path, dpi=600)
 
     for node_from, node_to, weight in base_graph:
         coord_from = list(coordinates[node_from - 1])
         coord_to = list(coordinates[node_to - 1])
-        ax.plot([coord_from[0], coord_to[0]], [coord_from[1], coord_to[1]])
+        ax.plot([coord_from[0], coord_to[0]], [coord_from[1], coord_to[1]], linewidth=0.5, color='0.8', zorder=1)
 
-    plt.axis('equal')
-    plt.savefig(image_file_path, dpi=150)
+    plt.savefig(linked_image_path, dpi=600)
+
     plt.close()
 
 
@@ -105,16 +91,19 @@ def make_base_preview_image(coordinates, workdir, basename):
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection=Axes3D.name)
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_zticklabels([])
 
     def init():
         logging.info('init animate')
         for x, y, z in coordinates:
-            ax.scatter(x, y, z, s=2, alpha=0.7, c="m")
+            ax.scatter(x, y, z, s=4, c="orange", edgecolors='#FFFFFF', linewidths=0.2)
 
     def animate(i):
         logging.info('frame %i' % i)
         ax.view_init(elev=i * 5, azim=i * 5)
 
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
-    anim.save(image_file_path, writer='imagemagick', fps=8)
+    anim.save(image_file_path, writer='imagemagick', fps=8, dpi=300)
     plt.close()
