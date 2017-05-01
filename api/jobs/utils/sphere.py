@@ -3,13 +3,13 @@ import math
 
 
 # Cartesian to Horizontal
-def random_directions(samples=150):
+def sphere_random_directions(samples=150):
     """
     :param samples:
     :return: radians
     """
     directions = []
-    points = fibonacci_sphere(samples * 2)
+    points = _fibonacci_sphere(samples * 2)
     for x, y, z in points:
         if z < 0:
             continue
@@ -35,7 +35,7 @@ def random_directions(samples=150):
     return directions
 
 
-def fibonacci_sphere(samples=300, randomize=True):
+def _fibonacci_sphere(samples=300, randomize=True):
     rnd = 1.
     if randomize:
         rnd = random.random() * samples

@@ -6,7 +6,7 @@ import logging
 import multiprocessing
 
 
-def save_dipha_distance_matrix(filename, distance_matrix):
+def dipha_save_distance_matrix(distance_matrix, filename):
     logging.info('generating distance matrix')
     dis_file = open(filename, 'wb')
     dis_file.write(np.int64(8067171840).tobytes())  # DIPHA magic number
@@ -33,7 +33,7 @@ def dipha_exec(input_file):
     return out_file
 
 
-def parse_dipha_output(dipha_out_file, base_name):
+def dipha_extract_diagram(dipha_out_file, base_name):
     diagram_file_path = path.join(path.dirname(dipha_out_file), '%s.diagram' % base_name)
 
     if path.isfile(diagram_file_path):

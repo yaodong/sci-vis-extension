@@ -22,7 +22,16 @@ class Job(models.Model):
         return self.params.get(name)
 
     def output(self, name, value):
-        pass
+        try:
+            item = JobOutput.objects.get(job=self, name=name)
+        except JobOutput.DoesNotExist:
+            item = JobOutput(job=self, name=name)
+
+        item.value = value
+        item.save()
+
+    def clear_outputs(self):
+        JobOutput.objects.filter(job=self).delete()
 
 
 class JobOutput(models.Model):
