@@ -12,6 +12,8 @@ from matplotlib import animation
 def compute_graph(job_id, data_file):
     job = job_get(job_id)
 
+    job.output('percentage', 10.0)
+
     work_dir = path.dirname(data_file)
     distance_matrix_file = path.join(work_dir, 'base_distance_matrix.bin')
 
@@ -19,17 +21,26 @@ def compute_graph(job_id, data_file):
     distance_matrix = graph_distance_matrix(base_graph)
     dipha_save_distance_matrix(distance_matrix, distance_matrix_file)
 
+    job.output('percentage', 5.0)
+
     dipha_out = dipha_exec(distance_matrix_file)
     base_diagram = dipha_extract_diagram(dipha_out, 'base')
 
     points = multidimensional_scaling(distance_matrix)
     np.save(path.join(work_dir, 'base_points'), points)
 
-    make_base_preview_image(points, work_dir, 'base')
+    job.output('percentage', 10.0)
+
+    make_base_preview_image(points, work_dir)
 
     directions = sphere_random_directions()
     for index, (altitude, azimuth) in enumerate(directions):
         compute_projected_graph(job, index, points, base_graph, base_diagram, work_dir, altitude, azimuth)
+        job.output('percentage', round(10.0 + (index+1) / len(directions) * 85, 1))
+
+    job.output('percentage', 100)
+    job.status = job.STATUS_DONE
+    job.save()
 
 
 def compute_projected_graph(job, index, base_points, base_graph, base_diagram, work_dir, altitude, azimuth):
@@ -49,14 +60,14 @@ def compute_projected_graph(job, index, base_points, base_graph, base_diagram, w
     dipha_out_file = dipha_exec(dipha_in_file)
     diagram_file = dipha_extract_diagram(dipha_out_file, 'projected_%i_dipha' % index)
 
-    bn_distance = calculate_bottleneck_distance(base_diagram, diagram_file)
+    bn_distance = calculate_bottleneck_distance(diagram_file, base_diagram)
 
     job.output('bn_distance_%i' % index, bn_distance)
 
 
 def make_projection_preview_image(coordinates, base_graph, work_dir, basename, index, altitude, azimuth):
-    image_path = path.join(work_dir, 'projected-%s-preview.png' % basename)
-    linked_image_path = path.join(work_dir, 'projected-%s-preview-linked.png' % basename)
+    image_path = path.join(work_dir, 'projected_%s_preview_dots.png' % basename)
+    linked_image_path = path.join(work_dir, 'projected_%s_preview_graph.png' % basename)
 
     from matplotlib import pyplot as plt
 
@@ -84,8 +95,8 @@ def make_projection_preview_image(coordinates, base_graph, work_dir, basename, i
     plt.close()
 
 
-def make_base_preview_image(coordinates, workdir, basename):
-    image_file_path = path.join(workdir, '%s-preview.gif' % basename)
+def make_base_preview_image(coordinates, workdir):
+    image_file_path = path.join(workdir, 'base_preview.gif')
 
     from matplotlib import pyplot as plt
 

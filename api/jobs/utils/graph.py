@@ -70,6 +70,8 @@ def calculate_bottleneck_distance(diagram_file, base_diagram_file):
         chdir(path.join(settings.BASE_DIR, 'scripts'))
         command = 'Rscript bottleneck_distance.r %s %s %s %s %s' % (
             work_dir, base_filename, proj_filename, val_filename, pic_filename)
+
+        print(command)
         proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         while proc.poll() is None:
             sleep(0.3)

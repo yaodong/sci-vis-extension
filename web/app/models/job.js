@@ -4,5 +4,6 @@ export default DS.Model.extend({
   name: DS.attr('string'),
   params: DS.attr(),
   status: DS.attr("number"),
-  createdAt: DS.attr('date')
+  createdAt: DS.attr('date'),
+  outputs: DS.hasMany('job-output')
 });

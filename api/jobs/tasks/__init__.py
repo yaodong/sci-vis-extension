@@ -8,6 +8,8 @@ from jobs.tasks.graph import compute_graph
 @shared_task()
 def dispatch_computing(job_id):
     job = job_get(job_id)
+    job.status = job.STATUS_STARTED
+    job.save()
     job.clear_outputs()
 
     work_dir = job_prepare_work_dir(job)
