@@ -3,10 +3,6 @@ import Config from 'webapp/config/environment';
 
 export default Ember.Controller.extend({
 
-  bestProjection: Ember.computed("model", function() {
-    return this.get("model.outputs.best_projection");
-  }),
-
   imageBaseUrl: Ember.computed("model", function() {
     return Config.APP.API_HOST + "/static/jobs/"+ this.get("model.id");
   }),
@@ -20,9 +16,10 @@ export default Ember.Controller.extend({
   }),
 
   actions: {
-    directionChanged(zx, zy, distance) {
-      this.set("zx", zx);
-      this.set("zy", zy);
+    directionChanged(index, altitude, azimuth, distance) {
+      this.set("index", index);
+      this.set("altitude", altitude);
+      this.set("azimuth", azimuth);
       this.set("distance", distance);
     }
   }

@@ -29,7 +29,7 @@ def compute_graph(job_id, data_file):
 
     make_base_preview_image(points, work_dir)
 
-    directions = sphere_random_directions(100)
+    directions = sphere_random_directions(500)
     direction_results = {}
     for index, (altitude, azimuth) in enumerate(directions):
         direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, altitude, azimuth)
@@ -45,6 +45,7 @@ def compute_graph(job_id, data_file):
 
 
 def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, altitude, azimuth):
+
     logging.info('processing direction %i' % index)
 
     points = project_point_cloud(base_points, altitude, azimuth)

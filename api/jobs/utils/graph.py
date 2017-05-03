@@ -60,7 +60,7 @@ def calculate_bottleneck_distance(diagram_file, base_diagram_file):
     base_filename = path.basename(base_diagram_file)
     proj_filename = path.basename(diagram_file)
     basename = path.splitext(path.basename(diagram_file))[0]
-    pic_filename = basename + '-diagram.png'
+    pic_filename = basename + '_diagram.png'
     val_filename = basename + '.txt'
     val_filepath = path.join(work_dir, val_filename)
 

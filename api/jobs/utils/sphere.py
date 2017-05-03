@@ -20,7 +20,7 @@ def sphere_random_directions(samples=150):
             else:
                 azimuth = -.5
         else:
-            azimuth = math.atan(y / x)
+            azimuth = math.atan2(y, x)
 
         if z == 0:
             altitude = 0

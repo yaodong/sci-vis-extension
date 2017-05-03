@@ -9,7 +9,7 @@ export default Ember.Component.extend({
 
   cmap: Ember.computed("colorShades", function() {
     return colorMap({
-      colormap: "YIGnBu",
+      colormap: "inferno",
       nshades: this.get("colorShades"),
       format: 'rgbaString'
     });
@@ -64,41 +64,43 @@ export default Ember.Component.extend({
 
     let cmap = this.get("cmap");
     let shades = this.get("colorShades");
-
-    let circleG = d3.geoCircle().radius(1.5).precision(90);
-    $.map(directions, function (d) {
-      let altitude_degree = d['altitude'] / Math.PI * 180;
-      let azimuth_degree = d['azimuth'] / Math.PI * 180;
-      let stroke = "none";
-
-      if (d['distance'] === minDistance) {
-        stroke = "red";
-      }
-
-
-      let color = cmap[parseInt((1 - (d['distance'] - minDistance) / range) * (shades - 1))];
-      svg.append("path")
-        .datum(circleG.center([90 - altitude_degree, 90 - azimuth_degree])())
-        .style("fill", color)
-        .attr("stroke", stroke)
-        .attr("data-altitude", altitude_degree)
-        .attr("data-azimuth", azimuth_degree)
-        .attr("data-distance", d['distance'])
-        .attr("class", "circle")
-        .attr("d", path)
-        .on("click", onClickOfCircle);
-    });
-
     let component = this;
 
     function onClickOfCircle() {
       let circle = d3.select(this);
       component.sendAction("directionChanged",
+        circle.attr("data-index"),
         circle.attr("data-altitude"),
         circle.attr("data-azimuth"),
-        circle.attr("data-distance")
+        circle.attr("data-distance"),
       );
     }
+
+    let circleG = d3.geoCircle().radius(1.5).precision(90);
+    $.map(directions, function (d) {
+      let longitude = d['azimuth'] * 180.0 / Math.PI;
+      let latitude = d['altitude'] * 180.0 / Math.PI;
+      let stroke = "none";
+
+      console.log(d['azimuth']);
+
+      if (d['index'] === bestDirectionIndex) {
+        stroke = "red";
+      }
+
+      let color = cmap[parseInt((1 - (d['distance'] - minDistance) / range) * (shades - 1))];
+      svg.append("path")
+        .datum(circleG.center([longitude, latitude])())
+        .style("fill", color)
+        .attr("stroke", stroke)
+        .attr("data-index", d['index'])
+        .attr("data-altitude", d['altitude'])
+        .attr("data-azimuth", d['azimuth'])
+        .attr("data-distance", d['distance'])
+        .attr("class", "circle")
+        .attr("d", path)
+        .on("click", onClickOfCircle);
+    });
 
     svg.call(d3.drag().on("start", dragStarted).on("drag", dragged));
 
