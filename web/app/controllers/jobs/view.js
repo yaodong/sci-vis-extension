@@ -3,38 +3,23 @@ import Config from 'webapp/config/environment';
 
 export default Ember.Controller.extend({
 
-  bestProjection: Ember.computed("model", function() {
-    return this.get("model.outputs.best_projection");
-  }),
-
-  zx: Ember.computed("bestProjection", function() {
-    return this.get("bestProjection")[0];
-  }),
-
-  zy: Ember.computed("bestProjection", function() {
-    return this.get("bestProjection")[1];
-  }),
-
-  distance: Ember.computed("bestProjection", function() {
-    return this.get("bestProjection")[2];
-  }),
-
   imageBaseUrl: Ember.computed("model", function() {
-    return Config.APP.API_HOST + "/static/jobs/"+ this.get("model.ticket");
+    return Config.APP.API_HOST + "/static/jobs/"+ this.get("model.id");
   }),
 
   previewImgUrl: Ember.computed("imageBaseUrl", function() {
-    return this.get("imageBaseUrl") + "/base-preview.gif";
+    return this.get("imageBaseUrl") + "/base_preview.gif";
   }),
 
   persistenceDiagramUrl: Ember.computed("imageBaseUrl", function() {
-    return this.get("imageBaseUrl") + "/base-diagram.png";
+    return this.get("imageBaseUrl") + "/base_diagram.png";
   }),
 
   actions: {
-    directionChanged(zx, zy, distance) {
-      this.set("zx", zx);
-      this.set("zy", zy);
+    directionChanged(index, altitude, azimuth, distance) {
+      this.set("index", index);
+      this.set("altitude", altitude);
+      this.set("azimuth", azimuth);
       this.set("distance", distance);
     }
   }

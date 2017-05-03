@@ -14,8 +14,6 @@ export default Ember.Controller.extend({
         form_data[this.name] = this.value || '';
       });
 
-      console.log(form_data);
-
       let model = this.get('model');
       let that = this;
 
@@ -25,12 +23,13 @@ export default Ember.Controller.extend({
         ]);
       } else {
         btnSubmit.attr('disabled', 'true');
-        model.set('inputs', {
-          file: form.find('#files-picker-id').val(),
-          data_format: form_data['data_format']
+        model.set('params', {
+          file: form_data['file'],
+          data_format: form_data['data_format'],
         });
 
-        model.set('method', form.find('input[name=method]').val());
+        model.set('status', -2);
+
         model.save().then(() => {
           that.transitionToRoute('jobs');
         }, () => {

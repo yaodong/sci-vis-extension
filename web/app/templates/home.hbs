@@ -1,1 +1,25 @@
-{{#link-to "jobs.index" class="btn btn-success"}}Enter{{/link-to}}
+<div class="row stage-header">
+  <div class="col-sm-6 stage-title">All Processes</div>
+  <div class="col-sm-6 text-right">{{#link-to "jobs.new" class="btn btn-default"}}Start New{{/link-to}}</div>
+</div>
+
+<div class="jobs">
+  {{#each model as |job|}}
+    {{#if job.id}}
+      <div class="jobs__job">
+        <div class="jobs__image">
+          TODO
+        </div>
+        <div class="jobs__progress">
+          {{#if (eq job.status 0)}}
+            {{#link-to "jobs.view" job.id}}View Result{{/link-to}}
+          {{else if (gt job.status 0)}}
+            Error
+          {{else}}
+            Running
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+  {{/each}}
+</div>

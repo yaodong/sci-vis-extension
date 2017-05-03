@@ -63,33 +63,46 @@
 
         <!-- direction -->
         <li class="inspector__section">
-          <div class="inspector__key">Direction</div>
+          <div class="inspector__key">The best direction</div>
           <div class="inspector__value">
-            [{{zx}}, {{zy}}]
+            <ul class="list-unstyled">
+              <li><strong>altitude</strong> {{altitude}}</li>
+              <li><strong>azimuth</strong> {{azimuth}}</li>
+              <li><strong>bottleneck distance</strong> {{distance}}</li>
+            </ul>
           </div>
         </li>
 
         <!-- projection image -->
         <li class="inspector__section">
-          <div class="inspector__key">Projection (2D)</div>
+          <div class="inspector__key">Projected Point Cloud</div>
           <div class="inspector__value">
-            {{inspector-diagram model=model zx=zx zy=zy title="Projection (2D)" type="preview"}}
+            {{inspector-diagram model=model index=index title="Projected Point Cloud" type="preview_dots"}}
+            <small class="help-block">Click to enlarge</small>
+          </div>
+        </li>
+
+        <!-- projection image -->
+        <li class="inspector__section">
+          <div class="inspector__key">Projected Graph</div>
+          <div class="inspector__value">
+            {{inspector-diagram model=model index=index title="Projected Graph" type="preview_graph"}}
             <small class="help-block">Click to enlarge</small>
           </div>
         </li>
 
         <!-- PD -->
         <li class="inspector__section">
-          <div class="inspector__key">Persistence Diagram (2D)</div>
+          <div class="inspector__key">Persistence Diagram</div>
           <div class="inspector__value">
-            {{inspector-diagram model=model zx=zx zy=zy title="Persistence Diagram (2D)" type="diagram"}}
+            {{inspector-diagram model=model index=index title="Persistence Diagram" type="diagram"}}
             <small class="help-block">Click to enlarge</small>
           </div>
         </li>
       </ul>
     </div><!-- .col-md-4 -->
     <div class="col-md-8">
-      {{result-sphere outputs=model.outputs directionChanged=(action "directionChanged")}}
+      {{rotating-sphere results=model.results directionChanged=(action "directionChanged")}}
       <small class="help-block">
         1. Each diamond represents a direction of projection. Click it to inspect the result.<br />
         2. Drag the sphere to rotate.<br />
