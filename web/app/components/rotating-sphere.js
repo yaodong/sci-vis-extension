@@ -70,19 +70,17 @@ export default Ember.Component.extend({
       let circle = d3.select(this);
       component.sendAction("directionChanged",
         circle.attr("data-index"),
-        circle.attr("data-altitude"),
-        circle.attr("data-azimuth"),
+        circle.attr("data-longitude"),
+        circle.attr("data-latitude"),
         circle.attr("data-distance"),
       );
     }
 
     let circleG = d3.geoCircle().radius(1.5).precision(90);
     $.map(directions, function (d) {
-      let longitude = d['azimuth'] * 180.0 / Math.PI;
-      let latitude = d['altitude'] * 180.0 / Math.PI;
+      let longitude = d['longitude'];
+      let latitude = d['latitude'];
       let stroke = "none";
-
-      console.log(d['azimuth']);
 
       if (d['index'] === bestDirectionIndex) {
         stroke = "red";
@@ -94,8 +92,8 @@ export default Ember.Component.extend({
         .style("fill", color)
         .attr("stroke", stroke)
         .attr("data-index", d['index'])
-        .attr("data-altitude", d['altitude'])
-        .attr("data-azimuth", d['azimuth'])
+        .attr("data-latitude", d['latitude'])
+        .attr("data-longitude", d['longitude'])
         .attr("data-distance", d['distance'])
         .attr("class", "circle")
         .attr("d", path)

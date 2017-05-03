@@ -1,5 +1,5 @@
 import random
-import math
+from numpy import *
 
 
 # Cartesian to Horizontal
@@ -16,21 +16,18 @@ def sphere_random_directions(samples=150):
 
         if x == 0:
             if y > 0:
-                azimuth = .5
+                longitude = .5
             else:
-                azimuth = -.5
+                longitude = -.5
         else:
-            azimuth = math.atan2(y, x)
+            longitude = arctan2(y, x) * 180 / pi
 
         if z == 0:
-            altitude = 0
+            latitude = 0
         else:
-            altitude = math.atan(z / math.sqrt(math.pow(x, 2) + math.pow(y, 2)))
+            latitude = arcsin(z / sqrt(x * x + y * y + z * z)) * 180 / pi
 
-        altitude = round(altitude, 5)
-        azimuth = round(azimuth, 5)
-
-        directions.append((altitude, azimuth))
+        directions.append((longitude, latitude))
 
     return directions
 
@@ -42,16 +39,16 @@ def _fibonacci_sphere(samples=300, randomize=True):
 
     points = []
     offset = 2. / samples
-    increment = math.pi * (3. - math.sqrt(5.))
+    increment = pi * (3. - sqrt(5.))
 
     for i in range(samples):
         y = ((i * offset) - 1) + (offset / 2)
-        r = math.sqrt(1 - pow(y, 2))
+        r = sqrt(1 - pow(y, 2))
 
         phi = ((i + rnd) % samples) * increment
 
-        x = math.cos(phi) * r
-        z = math.sin(phi) * r
+        x = cos(phi) * r
+        z = sin(phi) * r
 
         points.append([x, y, z])
 

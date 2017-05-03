@@ -23,16 +23,18 @@ def compute_graph(job_id, data_file):
     base_diagram = dipha_extract_diagram(dipha_out, 'base')
 
     points = multidimensional_scaling(distance_matrix)
-    np.save(path.join(work_dir, 'base_points'), points)
 
     generate_base_persistence_diagram(work_dir)
 
     make_base_preview_image(points, work_dir)
 
-    directions = sphere_random_directions(500)
+    directions = sphere_random_directions(30)
+
     direction_results = {}
-    for index, (altitude, azimuth) in enumerate(directions):
-        direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, altitude, azimuth)
+    for index, (longitude, latitude) in enumerate(directions):
+        print((index, longitude, latitude))
+        direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, longitude,
+                                                           latitude)
 
     job.results = {
         'best': min(direction_results.values(), key=lambda d: d['distance'])['index'],
@@ -44,15 +46,13 @@ def compute_graph(job_id, data_file):
     job.save()
 
 
-def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, altitude, azimuth):
-
+def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, longitude, latitude):
     logging.info('processing direction %i' % index)
 
-    points = project_point_cloud(base_points, altitude, azimuth)
+    points = project_point_cloud(base_points, longitude, latitude)
     np.save(path.join(work_dir, 'projected_%i_points' % index), points)
 
-    make_projection_preview_image(points, base_graph, work_dir, index, index, altitude, azimuth)
-
+    make_projection_preview_image(points, base_graph, work_dir, index, index, longitude, latitude)
     distance_matrix = compute_points_distance_matrix(points)
 
     dipha_in_file = path.join(work_dir, 'projected_%i_dipha' % index)
@@ -62,16 +62,15 @@ def compute_projected_graph(index, base_points, base_graph, base_diagram, work_d
     diagram_file = dipha_extract_diagram(dipha_out_file, 'projected_%i_dipha' % index)
 
     distance = calculate_bottleneck_distance(diagram_file, base_diagram)
-
     return {
         'index': index,
-        'altitude': altitude,
-        'azimuth': azimuth,
+        'longitude': longitude,
+        'latitude': latitude,
         'distance': distance
     }
 
 
-def make_projection_preview_image(coordinates, base_graph, work_dir, basename, index, altitude, azimuth):
+def make_projection_preview_image(coordinates, base_graph, work_dir, basename, index, longitude, latitude):
     image_path = path.join(work_dir, 'projected_%s_preview_dots.png' % basename)
     linked_image_path = path.join(work_dir, 'projected_%s_preview_graph.png' % basename)
 
@@ -87,7 +86,7 @@ def make_projection_preview_image(coordinates, base_graph, work_dir, basename, i
     ax.yaxis.set_visible(False)
 
     plt.title('direction #%i' % index, loc='left')
-    plt.title('altitude %s, azimuth %s' % (round(altitude, 3), round(azimuth, 3)), loc='right')
+    plt.title('ongitude %s  latitude %s' % (round(longitude, 3), round(latitude, 3)), loc='right')
     plt.axis('equal')
     plt.savefig(image_path, dpi=600)
 

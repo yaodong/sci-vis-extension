@@ -16,10 +16,10 @@ export default Ember.Controller.extend({
   }),
 
   actions: {
-    directionChanged(index, altitude, azimuth, distance) {
+    directionChanged(index, longitude, latitude, distance) {
       this.set("index", index);
-      this.set("altitude", altitude);
-      this.set("azimuth", azimuth);
+      this.set("longitude", longitude);
+      this.set("latitude", latitude);
       this.set("distance", distance);
     }
   }
