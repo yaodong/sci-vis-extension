@@ -12,8 +12,6 @@ from matplotlib import animation
 def compute_graph(job_id, data_file):
     job = job_get(job_id)
 
-    job.output('percentage', 10.0)
-
     work_dir = path.dirname(data_file)
     distance_matrix_file = path.join(work_dir, 'base_distance_matrix.bin')
 
@@ -21,31 +19,33 @@ def compute_graph(job_id, data_file):
     distance_matrix = graph_distance_matrix(base_graph)
     dipha_save_distance_matrix(distance_matrix, distance_matrix_file)
 
-    job.output('percentage', 5.0)
-
     dipha_out = dipha_exec(distance_matrix_file)
     base_diagram = dipha_extract_diagram(dipha_out, 'base')
 
     points = multidimensional_scaling(distance_matrix)
     np.save(path.join(work_dir, 'base_points'), points)
 
-    job.output('percentage', 10.0)
+    generate_base_persistence_diagram(work_dir)
 
     make_base_preview_image(points, work_dir)
 
-    directions = sphere_random_directions()
+    directions = sphere_random_directions(100)
+    direction_results = {}
     for index, (altitude, azimuth) in enumerate(directions):
-        compute_projected_graph(job, index, points, base_graph, base_diagram, work_dir, altitude, azimuth)
-        job.output('percentage', round(10.0 + (index+1) / len(directions) * 85, 1))
+        direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, altitude, azimuth)
 
-    job.output('percentage', 100)
+    job.results = {
+        'best': min(direction_results.values(), key=lambda d: d['distance'])['index'],
+        'worst': max(direction_results.values(), key=lambda d: d['distance'])['index'],
+        'directions': direction_results
+    }
+    job.progress = 100
     job.status = job.STATUS_DONE
     job.save()
 
 
-def compute_projected_graph(job, index, base_points, base_graph, base_diagram, work_dir, altitude, azimuth):
+def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, altitude, azimuth):
     logging.info('processing direction %i' % index)
-    job.output('direction_%i' % index, (altitude, azimuth))
 
     points = project_point_cloud(base_points, altitude, azimuth)
     np.save(path.join(work_dir, 'projected_%i_points' % index), points)
@@ -60,9 +60,14 @@ def compute_projected_graph(job, index, base_points, base_graph, base_diagram, w
     dipha_out_file = dipha_exec(dipha_in_file)
     diagram_file = dipha_extract_diagram(dipha_out_file, 'projected_%i_dipha' % index)
 
-    bn_distance = calculate_bottleneck_distance(diagram_file, base_diagram)
+    distance = calculate_bottleneck_distance(diagram_file, base_diagram)
 
-    job.output('bn_distance_%i' % index, bn_distance)
+    return {
+        'index': index,
+        'altitude': altitude,
+        'azimuth': azimuth,
+        'distance': distance
+    }
 
 
 def make_projection_preview_image(coordinates, base_graph, work_dir, basename, index, altitude, azimuth):
@@ -118,3 +123,10 @@ def make_base_preview_image(coordinates, workdir):
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
     anim.save(image_file_path, writer='imagemagick', fps=8, dpi=300)
     plt.close()
+
+
+def generate_base_persistence_diagram(work_dir):
+    chdir(path.join(settings.BASE_DIR, 'scripts'))
+    command = 'Rscript diagram.r %s' % work_dir
+    p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    p.communicate(timeout=15)

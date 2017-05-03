@@ -10,7 +10,6 @@ def dispatch_computing(job_id):
     job = job_get(job_id)
     job.status = job.STATUS_STARTED
     job.save()
-    job.clear_outputs()
 
     work_dir = job_prepare_work_dir(job)
     data_file_path = path.join(work_dir, 'base.dat')

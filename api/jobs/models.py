@@ -12,7 +12,9 @@ class Job(models.Model):
 
     name = models.CharField(max_length=128)
     params = JSONField(default={})
+    results = JSONField(default={})
     status = models.IntegerField(default=STATUS_SUBMITTED)
+    progress = models.FloatField(default=0.0)
     created_at = models.DateTimeField(auto_created=True, auto_now_add=True)
 
     class Meta:
@@ -21,26 +23,9 @@ class Job(models.Model):
     def param(self, name):
         return self.params.get(name)
 
-    def output(self, name, value):
-        try:
-            item = JobOutput.objects.get(job=self, name=name)
-        except JobOutput.DoesNotExist:
-            item = JobOutput(job=self, name=name)
-
-        item.value = value
-        item.save()
-
-    def clear_outputs(self):
-        JobOutput.objects.filter(job=self).delete()
-
-
-class JobOutput(models.Model):
-    job = models.ForeignKey(Job, null=False)
-    name = models.CharField(max_length=128)
-    value = JSONField(default=None)
-
-    class Meta:
-        unique_together = ('job', 'name')
+    def update_progress(self, percentage):
+        self.progress = percentage
+        self.save()
 
 
 def create_background_job(sender, instance, created, **kwargs):

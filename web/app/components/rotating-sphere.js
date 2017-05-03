@@ -19,10 +19,13 @@ export default Ember.Component.extend({
 
     this._super(...arguments);
 
-    let bestProjection = this.get('outputs.best_projection'),
-      worstProjection = this.get('outputs.worst_projection'),
-      minDistance = bestProjection[2],
-      maxDistance = worstProjection[2],
+    let results = this.get('results');
+
+    let bestDirectionIndex = this.get('results.best'),
+      worstDirectionIndex = this.get('results.worst'),
+      directions = this.get('results.directions'),
+      minDistance = directions[bestDirectionIndex]['distance'],
+      maxDistance = directions[worstDirectionIndex]['distance'],
       range = maxDistance - minDistance,
       width = 500,
       height = 500,
@@ -32,7 +35,7 @@ export default Ember.Component.extend({
       .attr("width", width)
       .attr("height", height);
 
-    let projection = d3.geoOrthographic()
+    let geo = d3.geoOrthographic()
       .scale(240)
       .rotate([0, -50, -30])
       .translate([width / 2, height / 2])
@@ -40,7 +43,7 @@ export default Ember.Component.extend({
       .precision(0.5);
 
     let path = d3.geoPath()
-      .projection(projection);
+      .projection(geo);
 
     let graticule = d3.geoGraticule();
 
@@ -63,24 +66,24 @@ export default Ember.Component.extend({
     let shades = this.get("colorShades");
 
     let circleG = d3.geoCircle().radius(1.5).precision(90);
-    $.map(this.get('outputs.bottleneck_distances'), function (d) {
-      let zx_angle = d[0];
-      let zy_angle = d[1];
+    $.map(directions, function (d) {
+      let altitude_degree = d['altitude'] / Math.PI * 180;
+      let azimuth_degree = d['azimuth'] / Math.PI * 180;
       let stroke = "none";
 
-      if (d[2] === minDistance) {
+      if (d['distance'] === minDistance) {
         stroke = "red";
       }
 
 
-      let color = cmap[parseInt((1 - (d[2] - minDistance) / range) * (shades - 1))];
+      let color = cmap[parseInt((1 - (d['distance'] - minDistance) / range) * (shades - 1))];
       svg.append("path")
-        .datum(circleG.center([90 - zx_angle, 90 - zy_angle])())
+        .datum(circleG.center([90 - altitude_degree, 90 - azimuth_degree])())
         .style("fill", color)
         .attr("stroke", stroke)
-        .attr("data-zx", zx_angle)
-        .attr("data-zy", zy_angle)
-        .attr("data-dis", d[2])
+        .attr("data-altitude", altitude_degree)
+        .attr("data-azimuth", azimuth_degree)
+        .attr("data-distance", d['distance'])
         .attr("class", "circle")
         .attr("d", path)
         .on("click", onClickOfCircle);
@@ -91,9 +94,9 @@ export default Ember.Component.extend({
     function onClickOfCircle() {
       let circle = d3.select(this);
       component.sendAction("directionChanged",
-        circle.attr("data-zx"),
-        circle.attr("data-zy"),
-        circle.attr("data-dis")
+        circle.attr("data-altitude"),
+        circle.attr("data-azimuth"),
+        circle.attr("data-distance")
       );
     }
 
@@ -107,16 +110,16 @@ export default Ember.Component.extend({
       q0; // Projection rotation as versor at start.
 
     function dragStarted() {
-      v0 = versor.cartesian(projection.invert(d3.mouse(this)));
-      r0 = projection.rotate();
+      v0 = versor.cartesian(geo.invert(d3.mouse(this)));
+      r0 = geo.rotate();
       q0 = versor(r0);
     }
 
     function dragged() {
-      let v1 = versor.cartesian(projection.rotate(r0).invert(d3.mouse(this))),
+      let v1 = versor.cartesian(geo.rotate(r0).invert(d3.mouse(this))),
         q1 = versor.multiply(q0, versor.delta(v0, v1)),
         r1 = versor.rotation(q1);
-      projection.rotate(r1);
+      geo.rotate(r1);
       svg.selectAll("path").attr("d", path);
     }
 
