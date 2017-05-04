@@ -44,7 +44,7 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-    ENV.APP.API_HOST = 'https://sci-tda-v03-api.yaodong.org'
+    ENV.APP.API_HOST = 'https://demo-sci-tda-api.yaodong.org'
   }
 
   return ENV;

@@ -57,8 +57,6 @@ def compute_graph(job_id, data_file):
 def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, longitude, latitude):
     logging.info('processing direction %i' % index)
 
-    print(base_points[0])
-
     points = project_point_cloud(base_points, longitude, latitude)
     np.save(path.join(work_dir, 'projected_%i_points' % index), points)
 

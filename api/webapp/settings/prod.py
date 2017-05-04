@@ -8,7 +8,7 @@ if SECRET_KEY is None or len(SECRET_KEY) < 50:
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["sci-tda-v03-api.yaodong.org"]
+ALLOWED_HOSTS = ["demo-sci-tda-api.yaodong.org"]
 
 DATA_DIR = "/srv/sci/tda/api/static"
 
