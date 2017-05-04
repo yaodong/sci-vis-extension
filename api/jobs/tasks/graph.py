@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import animation
 
 
-PROGRESS_PREVIEW_READY = 10
+PROGRESS_PREVIEW_READY = 5
 PROGRESS_ALMOST_DONE = 95
 
 
@@ -30,9 +30,6 @@ def compute_graph(job_id, data_file):
     generate_base_persistence_diagram(work_dir)
     make_base_preview_image(points, base_graph, work_dir)
 
-    job.progress = PROGRESS_PREVIEW_READY
-    job.save()
-
     directions = sphere_random_directions(300)
     direction_results = {}
 
@@ -41,7 +38,10 @@ def compute_graph(job_id, data_file):
     for index, (longitude, latitude) in enumerate(directions):
         direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, longitude,
                                                            latitude)
-        job.progress = job.progress + progress_step
+        if job.progress < PROGRESS_PREVIEW_READY:
+            job.progress = PROGRESS_PREVIEW_READY
+        else:
+            job.progress = round(job.progress + progress_step, 2)
         job.save()
 
     job.results = {
@@ -95,8 +95,6 @@ def make_projection_preview_image(coordinates, base_graph, work_dir, basename, i
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
 
-    plt.title('longitude %s latitude %s' % (round(longitude, 3), round(latitude, 3)))
-    plt.axis('equal')
     plt.savefig(image_path, dpi=600)
 
     for node_from, node_to, weight in base_graph:

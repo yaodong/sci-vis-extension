@@ -26,7 +26,7 @@ export default Ember.Component.extend({
       directions = this.get('results.directions'),
       minDistance = directions[bestDirectionIndex]['distance'],
       maxDistance = directions[worstDirectionIndex]['distance'],
-      range = maxDistance - minDistance,
+      range = maxDistance + 0.001 - minDistance,
       width = 500,
       height = 500,
       versor = this.versor();
@@ -86,11 +86,14 @@ export default Ember.Component.extend({
         stroke = "red";
       }
 
-      let color = cmap[parseInt((1 - (d['distance'] - minDistance) / range) * (shades - 1))];
+      let colorIndex = parseInt((1 - (d['distance'] - minDistance) / range) * (shades - 1));
+      let color = cmap[colorIndex];
+
       svg.append("path")
         .datum(circleG.center([longitude, latitude])())
         .style("fill", color)
         .attr("stroke", stroke)
+        .attr("data-color", colorIndex)
         .attr("data-index", d['index'])
         .attr("data-latitude", d['latitude'])
         .attr("data-longitude", d['longitude'])

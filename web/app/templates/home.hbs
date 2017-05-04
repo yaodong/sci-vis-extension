@@ -9,8 +9,8 @@
       <div class="jobs__job">
         <div class="jobs__name">{{job.name}}</div>
         <div class="jobs__image">
-          {{#if (gte job.progress 10)}}
-            <img width="180" height="180" src="{{imageBaseUrl}}/{{job.id}}/base_preview.gif" />
+          {{#if (gte job.progress 5)}}
+            <img width="180" height="180" src="{{imageBaseUrl}}/{{job.id}}/projected_0_preview_graph.png" />
           {{else}}
             <small>preview not available yet</small>
           {{/if}}
