@@ -34,10 +34,6 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name='job',
-            name='completed_at',
-        ),
-        migrations.RemoveField(
-            model_name='job',
             name='outputs',
         ),
         migrations.AlterField(
