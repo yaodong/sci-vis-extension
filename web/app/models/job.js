@@ -6,4 +6,5 @@ export default DS.Model.extend({
   status: DS.attr("number"),
   createdAt: DS.attr('date'),
   results: DS.attr(),
+  progress: DS.attr("number"),
 });

@@ -29,9 +29,10 @@ export default Ember.Controller.extend({
         });
 
         model.set('status', -2);
+        model.set('progress', 0);
 
         model.save().then(() => {
-          that.transitionToRoute('jobs');
+          that.transitionToRoute('home');
         }, () => {
           btnSubmit.attr('disabled', null);
         });

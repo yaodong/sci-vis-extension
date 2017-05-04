@@ -2,7 +2,7 @@
   <div class="col-sm-6 stage-title">{{model.name}}
     <small>#{{model.id}}</small>
   </div>
-  <div class="col-sm-6 text-right">{{#link-to "jobs.index" class="btn btn-default"}}Back to List{{/link-to}}</div>
+  <div class="col-sm-6 text-right">{{#link-to "home" class="btn btn-default"}}Back to List{{/link-to}}</div>
 </div>
 
 <div class="widget">
@@ -13,11 +13,11 @@
       <td class="job-info__cell">
         <div class="job-info__key">Best Direction</div>
         <div class="job-info__value">
-          [{{model.outputs.best_projection.[0]}}, {{model.outputs.best_projection.[1]}}]
+          ({{bestLongitude}}, {{bestLatitude}})
         </div>
         <div class="job-info__key">Shortest Bottleneck Distance</div>
         <div class="job-info__value">
-          {{model.outputs.best_projection.[2]}}
+          {{bestDistance}}
         </div>
       </td>
       <!-- preview (3d) -->
@@ -28,7 +28,6 @@
                       data-lightbox="job-info"
                       data-title="Preview (3D)"
                       data-class="job-info__image"}}
-          <small class="help-block">Click to enlarge</small>
         </div>
       </td>
       <!-- preview KED -->
@@ -36,10 +35,19 @@
         <div class="job-info__key">Persistence Diagram (3D)</div>
         <div class="job-info__value -image">
           {{light-box href=persistenceDiagramUrl
-              data-lightbox="job-info"
-              data-title="Persistance Diagram (3D)"
-              data-class="job-info__image"}}
-          <small class="help-block">Click to enlarge</small>
+                      data-lightbox="job-info"
+                      data-title="Persistance Diagram (3D)"
+                      data-class="job-info__image"}}
+        </div>
+      </td>
+      <!-- preview projection -->
+      <td class="job-info__cell">
+        <div class="job-info__key">Best Projection</div>
+        <div class="job-info__value -image">
+          {{light-box href=bestProjectionImageUrl
+                      data-lightbox="job-info"
+                      data-title="Best Projection"
+                      data-class="job-info__image"}}
         </div>
       </td>
     </tr>
@@ -50,61 +58,60 @@
   <h3 class="widget__title">Inspector</h3>
   <div class="row">
     <div class="col-md-4">
-      <ul class="inspector__info">
-        <!-- distance -->
-        <li class="inspector__section">
-          <div class="inspector__key">
-            Bottleneck Distance
-          </div>
-          <div class="inspector__value">
-            {{distance}}
-          </div>
-        </li>
+      <div class="{{if selectedIndex "" "hidden"}}">
+        <ul class="inspector__info">
+          <!-- distance -->
+          <li class="inspector__section">
+            <div class="inspector__key">
+              Bottleneck Distance
+            </div>
+            <div class="inspector__value">
+              {{selectedDistance}}
+            </div>
+          </li>
 
-        <!-- direction -->
-        <li class="inspector__section">
-          <div class="inspector__key">The best direction</div>
-          <div class="inspector__value">
-            <ul class="list-unstyled">
-              <li><strong>latitude</strong> {{latitude}}</li>
-              <li><strong>longitude</strong> {{longitude}}</li>
-            </ul>
-          </div>
-        </li>
+          <!-- direction -->
+          <li class="inspector__section">
+            <div class="inspector__key">Direction (longitude, latitude)</div>
+            <div class="inspector__value">
+              ({{selectedLongitude}}, {{selectedLatitude}})
+            </div>
+          </li>
 
-        <!-- projection image -->
-        <li class="inspector__section">
-          <div class="inspector__key">Projected Point Cloud</div>
-          <div class="inspector__value">
-            {{inspector-diagram model=model index=index title="Projected Point Cloud" type="preview_dots"}}
-            <small class="help-block">Click to enlarge</small>
-          </div>
-        </li>
+          <!-- projection image -->
+          <li class="inspector__section">
+            <div class="inspector__key">Projected Point Cloud</div>
+            <div class="inspector__value">
+              {{inspector-diagram model=model index=selectedIndex title="Projected Point Cloud" type="preview_dots"}}
+            </div>
+          </li>
 
-        <!-- projection image -->
-        <li class="inspector__section">
-          <div class="inspector__key">Projected Graph</div>
-          <div class="inspector__value">
-            {{inspector-diagram model=model index=index title="Projected Graph" type="preview_graph"}}
-            <small class="help-block">Click to enlarge</small>
-          </div>
-        </li>
+          <!-- projection image -->
+          <li class="inspector__section">
+            <div class="inspector__key">Projected Graph</div>
+            <div class="inspector__value">
+              {{inspector-diagram model=model index=selectedIndex title="Projected Graph" type="preview_graph"}}
+            </div>
+          </li>
 
-        <!-- PD -->
-        <li class="inspector__section">
-          <div class="inspector__key">Persistence Diagram</div>
-          <div class="inspector__value">
-            {{inspector-diagram model=model index=index title="Persistence Diagram" type="diagram"}}
-            <small class="help-block">Click to enlarge</small>
-          </div>
-        </li>
-      </ul>
+          <!-- PD -->
+          <li class="inspector__section">
+            <div class="inspector__key">Persistence Diagram</div>
+            <div class="inspector__value">
+              {{inspector-diagram model=model index=selectedIndex title="Persistence Diagram" type="dipha_diagram"}}
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="alert alert-info {{if selectedIndex "hidden" ""}}">
+        No selection yet.
+      </div>
     </div><!-- .col-md-4 -->
     <div class="col-md-8">
       {{rotating-sphere results=model.results directionChanged=(action "directionChanged")}}
       <small class="help-block">
-        1. Each diamond represents a direction of projection. Click it to inspect the result.<br />
-        2. Drag the sphere to rotate.<br />
+        1. Each diamond represents a direction of projection. Click it to inspect the result.<br/>
+        2. Drag the sphere to rotate.<br/>
         3. The best direction is marked by a diamond with red border.
       </small>
     </div>

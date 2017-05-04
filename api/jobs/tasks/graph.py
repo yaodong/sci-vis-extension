@@ -8,6 +8,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import animation
 
 
+PROGRESS_PREVIEW_READY = 10
+PROGRESS_ALMOST_DONE = 95
+
+
 @shared_task()
 def compute_graph(job_id, data_file):
     job = job_get(job_id)
@@ -23,18 +27,22 @@ def compute_graph(job_id, data_file):
     base_diagram = dipha_extract_diagram(dipha_out, 'base')
 
     points = multidimensional_scaling(distance_matrix)
-
     generate_base_persistence_diagram(work_dir)
+    make_base_preview_image(points, base_graph, work_dir)
 
-    make_base_preview_image(points, work_dir)
+    job.progress = PROGRESS_PREVIEW_READY
+    job.save()
 
-    directions = sphere_random_directions(30)
-
+    directions = sphere_random_directions(300)
     direction_results = {}
+
+    progress_step = round((PROGRESS_ALMOST_DONE - PROGRESS_PREVIEW_READY) / len(directions), 2)
+
     for index, (longitude, latitude) in enumerate(directions):
-        print((index, longitude, latitude))
         direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, longitude,
                                                            latitude)
+        job.progress = job.progress + progress_step
+        job.save()
 
     job.results = {
         'best': min(direction_results.values(), key=lambda d: d['distance'])['index'],
@@ -48,6 +56,8 @@ def compute_graph(job_id, data_file):
 
 def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, longitude, latitude):
     logging.info('processing direction %i' % index)
+
+    print(base_points[0])
 
     points = project_point_cloud(base_points, longitude, latitude)
     np.save(path.join(work_dir, 'projected_%i_points' % index), points)
@@ -80,27 +90,26 @@ def make_projection_preview_image(coordinates, base_graph, work_dir, basename, i
     ax = fig.add_subplot(111)
 
     for x, y in coordinates:
-        ax.scatter(x, y, s=4, c="orange", zorder=2, edgecolors='#FFFFFF', linewidths=0.2)
+        ax.scatter(x, y, s=4, c="#4e8bae", zorder=2, edgecolors='k', linewidths=0.5)
 
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
 
-    plt.title('direction #%i' % index, loc='left')
-    plt.title('ongitude %s  latitude %s' % (round(longitude, 3), round(latitude, 3)), loc='right')
+    plt.title('longitude %s latitude %s' % (round(longitude, 3), round(latitude, 3)))
     plt.axis('equal')
     plt.savefig(image_path, dpi=600)
 
     for node_from, node_to, weight in base_graph:
         coord_from = list(coordinates[node_from - 1])
         coord_to = list(coordinates[node_to - 1])
-        ax.plot([coord_from[0], coord_to[0]], [coord_from[1], coord_to[1]], linewidth=0.5, color='0.8', zorder=1)
+        ax.plot([coord_from[0], coord_to[0]], [coord_from[1], coord_to[1]], linewidth=0.5, color='#4e8bae', zorder=1)
 
     plt.savefig(linked_image_path, dpi=600)
 
     plt.close()
 
 
-def make_base_preview_image(coordinates, workdir):
+def make_base_preview_image(coordinates, base_graph, workdir):
     image_file_path = path.join(workdir, 'base_preview.gif')
 
     from matplotlib import pyplot as plt
@@ -114,11 +123,18 @@ def make_base_preview_image(coordinates, workdir):
     def init():
         logging.info('init animate')
         for x, y, z in coordinates:
-            ax.scatter(x, y, z, s=4, c="orange", edgecolors='#FFFFFF', linewidths=0.2)
+            ax.scatter(x, y, z, s=4, c="#4e8bae", edgecolors='k', linewidths=0.2)
 
     def animate(i):
         logging.info('frame %i' % i)
         ax.view_init(elev=i * 5, azim=i * 5)
+
+    for node_from, node_to, weight in base_graph:
+        coord_from = list(coordinates[node_from - 1])
+        coord_to = list(coordinates[node_to - 1])
+        ax.plot([coord_from[0], coord_to[0]], [coord_from[1], coord_to[1]], [coord_from[2], coord_to[2]],
+                linewidth=1,
+                color='#4e8bae', zorder=1)
 
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
     anim.save(image_file_path, writer='imagemagick', fps=8, dpi=300)

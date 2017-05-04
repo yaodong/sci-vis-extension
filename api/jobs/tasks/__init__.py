@@ -8,6 +8,7 @@ from jobs.tasks.graph import compute_graph
 @shared_task()
 def dispatch_computing(job_id):
     job = job_get(job_id)
+    job.progress = 1
     job.status = job.STATUS_STARTED
     job.save()
 

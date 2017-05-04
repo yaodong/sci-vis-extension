@@ -10,11 +10,11 @@ export default Ember.Route.extend({
   afterModel(posts) {
     let interval = 1000 * 10;
 
-    let bindReloading = function(post) {
-      if (post.get('percentage') < 100 && post.get('status') == null) {
+    let bindReloading = function(job) {
+      if (job.get('progress') < 100 && job.get('status') == -1) {
         Ember.run.later(this, (p) => {
           p.reload().then(bindReloading);
-        }, post, interval);
+        }, job, interval);
       }
     };
 

@@ -9,7 +9,7 @@ export default Ember.Component.extend({
 
   cmap: Ember.computed("colorShades", function() {
     return colorMap({
-      colormap: "inferno",
+      colormap: "salinity",
       nshades: this.get("colorShades"),
       format: 'rgbaString'
     });
@@ -80,7 +80,7 @@ export default Ember.Component.extend({
     $.map(directions, function (d) {
       let longitude = d['longitude'];
       let latitude = d['latitude'];
-      let stroke = "none";
+      let stroke = "#ccc";
 
       if (d['index'] === bestDirectionIndex) {
         stroke = "red";

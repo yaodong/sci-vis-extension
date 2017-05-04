@@ -1,4 +1,5 @@
 import math
+from copy import deepcopy
 
 
 def project_point_cloud(points, longitude, latitude):
@@ -33,8 +34,8 @@ def rotate_coordinates(row, radian, dim_from, dim_to):
     """
     cos_alpha, sin_alpha = math.cos(radian), math.sin(radian)
 
-    x, y = row[dim_from], row[dim_to]
-    new_row = row[:]
+    new_row = deepcopy(row)
+    x, y = new_row[dim_from], new_row[dim_to]
     new_row[dim_from] = cos_alpha * x - sin_alpha * y
     new_row[dim_to] = sin_alpha * x + cos_alpha * y
     return new_row
