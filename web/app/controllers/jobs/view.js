@@ -37,7 +37,7 @@ export default Ember.Controller.extend({
   }),
 
   bestDistance: Ember.computed("best", function () {
-    return Math.round(this.get("best")['distance'] * 100) / 100;
+    return this.get("best")['distance'];
   }),
 
   selectedIndex: null,
@@ -50,7 +50,7 @@ export default Ember.Controller.extend({
       this.set("selectedIndex", index);
       this.set("selectedLongitude", Math.round(longitude * 100) / 100);
       this.set("selectedLatitude", Math.round(latitude * 100) / 100);
-      this.set("selectedDistance", Math.round(distance * 100) / 100);
+      this.set("selectedDistance", distance);
     }
   }
 
