@@ -74,6 +74,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'webapp.wsgi.application'
 
 # Database
@@ -82,7 +83,7 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dimension_reduction',
+        'NAME': 'sci_tda',
     }
 }
 
@@ -121,7 +122,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
@@ -129,5 +129,5 @@ REST_FRAMEWORK = {
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-CELERY_RESULT_BACKEND = 'django-db'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_BROKER_URL = 'redis://localhost:6379/0'

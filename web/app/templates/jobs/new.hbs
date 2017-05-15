@@ -12,12 +12,28 @@
     {{files-picker}}
   {{/form-group}}
 
-  {{#form-group label="Method"}}
+  {{#form-group label="Data Format"}}
     <div class="radio">
       <label>
-        <input type="radio" name="method" value="best-direction" checked>
-        find the best projection direction
+        <input type="radio" name="data_format" value="point_cloud">
+        <strong>Point Cloud (temporarily disabled)</strong>
       </label>
+      <ul>
+        <li>Each line is a set of tab-separated values which represents a three-dimensional Euclidean coordinate.</li>
+        <li>Line format:<code>{x}  {y}  {z}</code></li>
+        <li>Line example:<code>17.22  27.19  45.59</code></li>
+      </ul>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio" name="data_format" value="graph" checked>
+        <strong>Weighted Graph</strong>
+      </label>
+      <ul>
+        <li>Each line is a set of tab-separated values which represents a node ID, its edge, weight.</li>
+        <li>Line format: <code>{from node ID}  {to node ID}  {weight}</code></li>
+        <li>Line example: <code>1 2 5</code></li>
+      </ul>
     </div>
   {{/form-group}}
 

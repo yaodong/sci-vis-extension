@@ -1,4 +1,4 @@
-/* jshint node: true */
+/* eslint-env node */
 
 module.exports = function(environment) {
   var ENV = {
@@ -44,7 +44,7 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-    ENV.APP.API_HOST = 'https://demo-singer-api.yaodong.org'
+    ENV.APP.API_HOST = 'https://demo-sci-tda-api.yaodong.org'
   }
 
   return ENV;

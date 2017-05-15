@@ -3,39 +3,54 @@ import Config from 'webapp/config/environment';
 
 export default Ember.Controller.extend({
 
-  bestProjection: Ember.computed("model", function() {
-    return this.get("model.outputs.best_projection");
+  imageBaseUrl: Ember.computed("model", function () {
+    return Config.APP.API_HOST + "/static/jobs/" + this.get("model.id");
   }),
 
-  zx: Ember.computed("bestProjection", function() {
-    return this.get("bestProjection")[0];
+  previewImgUrl: Ember.computed("imageBaseUrl", function () {
+    return this.get("imageBaseUrl") + "/base_preview.gif";
   }),
 
-  zy: Ember.computed("bestProjection", function() {
-    return this.get("bestProjection")[1];
+  persistenceDiagramUrl: Ember.computed("imageBaseUrl", function () {
+    return this.get("imageBaseUrl") + "/base_diagram.png";
   }),
 
-  distance: Ember.computed("bestProjection", function() {
-    return this.get("bestProjection")[2];
+  bestProjectionImageUrl: Ember.computed("bestIndex", "imageBaseUrl", function () {
+    return this.get("imageBaseUrl") + "/projected_" + this.get("bestIndex") + "_preview_graph.png";
   }),
 
-  imageBaseUrl: Ember.computed("model", function() {
-    return Config.APP.API_HOST + "/static/jobs/"+ this.get("model.ticket");
+  best: Ember.computed("model", function () {
+    let bestIndex = this.get("model.results.best");
+    return this.get("model.results.directions")[bestIndex];
   }),
 
-  previewImgUrl: Ember.computed("imageBaseUrl", function() {
-    return this.get("imageBaseUrl") + "/base-preview.gif";
+  bestIndex: Ember.computed("best", function () {
+    return this.get("best")['index'];
   }),
 
-  kdeImageUrl: Ember.computed("imageBaseUrl", function() {
-    return this.get("imageBaseUrl") + "/diagram_base.png";
+  bestLongitude: Ember.computed("best", function () {
+    return Math.round(this.get("best")['longitude'] * 100) / 100;
   }),
+
+  bestLatitude: Ember.computed("best", function () {
+    return Math.round(this.get("best")['distance'] * 100) / 100;
+  }),
+
+  bestDistance: Ember.computed("best", function () {
+    return this.get("best")['distance'];
+  }),
+
+  selectedIndex: null,
+  selectedLongitude: 'N/A',
+  selectedLatitude: 'N/A',
+  selectedDistance: 'N/A',
 
   actions: {
-    directionChanged(zx, zy, distance) {
-      this.set("zx", zx);
-      this.set("zy", zy);
-      this.set("distance", distance);
+    directionChanged(index, longitude, latitude, distance) {
+      this.set("selectedIndex", index);
+      this.set("selectedLongitude", Math.round(longitude * 100) / 100);
+      this.set("selectedLatitude", Math.round(latitude * 100) / 100);
+      this.set("selectedDistance", distance);
     }
   }
 

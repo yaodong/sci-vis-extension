@@ -2,5 +2,5 @@
 db.sqlite3
 __pycache__
 tmp/
-static/jobs
-!static/jobs/.gitkeep
+static/
+!static/.gitkeep

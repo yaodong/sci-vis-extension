@@ -1,16 +1,17 @@
-<script type="text/javascript" src="//api.filestackapi.com/filestack.js"></script>
 <script>
-  function setURL(file) {
-    $("#files-picker-name").text(file.filename);
-    $("#files-picker-id").val(file.url.split("/").pop());
+  var client = filestack.init('AWPOg9H9eRiKlGign4px8z');
+  function showPicker() {
+    client.pick({
+      accept: ['text/tab-separated-values'],
+      maxFiles: 1,
+      minFiles: 1,
+    }).then(function (result) {
+      $("#file-picker-button").hide();
+      $("#file-picker-input").val(result.filesUploaded[0]['handle']);
+      $("#file-picker-name").text(result.filesUploaded[0]['filename']);
+    });
   }
 </script>
-
-<span id="files-picker-name"></span>
-<input id="files-picker-id" name="file" value="" class="hide">
-<input type="filepicker"
-       data-fp-apikey="AWPOg9H9eRiKlGign4px8z"
-       data-fp-mimetypes="text/csv"
-       data-fp-container="modal"
-       data-fp-maxsize="50000000"
-       onchange="setURL(event.fpfile)" />
+<button id="file-picker-button" type="button" onclick="showPicker()" class="btn btn-default">Attach Data File</button>
+<input id="file-picker-input" type="hidden" name="file" value=""/>
+<span id="file-picker-name"></span>

@@ -9,23 +9,30 @@ export default Ember.Controller.extend({
       let form = $('#jobs-new-form');
       let btnSubmit = form.find('button[type=submit]');
 
+      let form_data = {};
+      $.each(form.serializeArray(), function() {
+        form_data[this.name] = this.value || '';
+      });
+
       let model = this.get('model');
-      let fileId = $("#files-picker-id").val();
       let that = this;
 
-      if (!fileId) {
+      if (!form_data['file']) {
         this.set('uploadErrors', [
           { message: 'file required' }
         ]);
       } else {
         btnSubmit.attr('disabled', 'true');
-        model.set('inputs', {
-          file: form.find('#files-picker-id').val(),
+        model.set('params', {
+          file: form_data['file'],
+          data_format: form_data['data_format'],
         });
 
-        model.set('method', form.find('input[name=method]').val());
+        model.set('status', -2);
+        model.set('progress', 0);
+
         model.save().then(() => {
-          that.transitionToRoute('jobs');
+          that.transitionToRoute('home');
         }, () => {
           btnSubmit.attr('disabled', null);
         });
