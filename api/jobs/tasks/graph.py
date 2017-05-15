@@ -8,6 +8,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import animation
 
 
+PROGRESS_PREVIEW_READY = 5
+PROGRESS_ALMOST_DONE = 95
+
+
 @shared_task()
 def compute_graph(job_id, data_file):
     job = job_get(job_id)
@@ -23,16 +27,22 @@ def compute_graph(job_id, data_file):
     base_diagram = dipha_extract_diagram(dipha_out, 'base')
 
     points = multidimensional_scaling(distance_matrix)
-    np.save(path.join(work_dir, 'base_points'), points)
-
     generate_base_persistence_diagram(work_dir)
+    make_base_preview_image(points, base_graph, work_dir)
 
-    make_base_preview_image(points, work_dir)
-
-    directions = sphere_random_directions(500)
+    directions = sphere_random_directions(300)
     direction_results = {}
-    for index, (altitude, azimuth) in enumerate(directions):
-        direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, altitude, azimuth)
+
+    progress_step = round((PROGRESS_ALMOST_DONE - PROGRESS_PREVIEW_READY) / len(directions), 2)
+
+    for index, (longitude, latitude) in enumerate(directions):
+        direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, longitude,
+                                                           latitude)
+        if job.progress < PROGRESS_PREVIEW_READY:
+            job.progress = PROGRESS_PREVIEW_READY
+        else:
+            job.progress = round(job.progress + progress_step, 2)
+        job.save()
 
     job.results = {
         'best': min(direction_results.values(), key=lambda d: d['distance'])['index'],
@@ -44,15 +54,13 @@ def compute_graph(job_id, data_file):
     job.save()
 
 
-def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, altitude, azimuth):
-
+def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, longitude, latitude):
     logging.info('processing direction %i' % index)
 
-    points = project_point_cloud(base_points, altitude, azimuth)
+    points = project_point_cloud(base_points, longitude, latitude)
     np.save(path.join(work_dir, 'projected_%i_points' % index), points)
 
-    make_projection_preview_image(points, base_graph, work_dir, index, index, altitude, azimuth)
-
+    make_projection_preview_image(points, base_graph, work_dir, index, index, longitude, latitude)
     distance_matrix = compute_points_distance_matrix(points)
 
     dipha_in_file = path.join(work_dir, 'projected_%i_dipha' % index)
@@ -62,16 +70,15 @@ def compute_projected_graph(index, base_points, base_graph, base_diagram, work_d
     diagram_file = dipha_extract_diagram(dipha_out_file, 'projected_%i_dipha' % index)
 
     distance = calculate_bottleneck_distance(diagram_file, base_diagram)
-
     return {
         'index': index,
-        'altitude': altitude,
-        'azimuth': azimuth,
+        'longitude': longitude,
+        'latitude': latitude,
         'distance': distance
     }
 
 
-def make_projection_preview_image(coordinates, base_graph, work_dir, basename, index, altitude, azimuth):
+def make_projection_preview_image(coordinates, base_graph, work_dir, basename, index, longitude, latitude):
     image_path = path.join(work_dir, 'projected_%s_preview_dots.png' % basename)
     linked_image_path = path.join(work_dir, 'projected_%s_preview_graph.png' % basename)
 
@@ -81,27 +88,24 @@ def make_projection_preview_image(coordinates, base_graph, work_dir, basename, i
     ax = fig.add_subplot(111)
 
     for x, y in coordinates:
-        ax.scatter(x, y, s=4, c="orange", zorder=2, edgecolors='#FFFFFF', linewidths=0.2)
+        ax.scatter(x, y, s=4, c="#4e8bae", zorder=2, edgecolors='k', linewidths=0.5)
 
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
 
-    plt.title('direction #%i' % index, loc='left')
-    plt.title('altitude %s, azimuth %s' % (round(altitude, 3), round(azimuth, 3)), loc='right')
-    plt.axis('equal')
     plt.savefig(image_path, dpi=600)
 
     for node_from, node_to, weight in base_graph:
         coord_from = list(coordinates[node_from - 1])
         coord_to = list(coordinates[node_to - 1])
-        ax.plot([coord_from[0], coord_to[0]], [coord_from[1], coord_to[1]], linewidth=0.5, color='0.8', zorder=1)
+        ax.plot([coord_from[0], coord_to[0]], [coord_from[1], coord_to[1]], linewidth=0.5, color='#4e8bae', zorder=1)
 
     plt.savefig(linked_image_path, dpi=600)
 
     plt.close()
 
 
-def make_base_preview_image(coordinates, workdir):
+def make_base_preview_image(coordinates, base_graph, workdir):
     image_file_path = path.join(workdir, 'base_preview.gif')
 
     from matplotlib import pyplot as plt
@@ -115,11 +119,18 @@ def make_base_preview_image(coordinates, workdir):
     def init():
         logging.info('init animate')
         for x, y, z in coordinates:
-            ax.scatter(x, y, z, s=4, c="orange", edgecolors='#FFFFFF', linewidths=0.2)
+            ax.scatter(x, y, z, s=4, c="#4e8bae", edgecolors='k', linewidths=0.2)
 
     def animate(i):
         logging.info('frame %i' % i)
         ax.view_init(elev=i * 5, azim=i * 5)
+
+    for node_from, node_to, weight in base_graph:
+        coord_from = list(coordinates[node_from - 1])
+        coord_to = list(coordinates[node_to - 1])
+        ax.plot([coord_from[0], coord_to[0]], [coord_from[1], coord_to[1]], [coord_from[2], coord_to[2]],
+                linewidth=1,
+                color='#4e8bae', zorder=1)
 
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=55, repeat_delay=1000)
     anim.save(image_file_path, writer='imagemagick', fps=8, dpi=300)

@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dimension_reduction',
+        'NAME': 'sci_tda',
     }
 }
 
