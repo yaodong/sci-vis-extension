@@ -6,6 +6,7 @@ from jobs.utils.sphere import sphere_random_directions
 from jobs.utils.point_cloud import project_point_cloud
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import animation
+import numpy as np
 
 
 PROGRESS_PREVIEW_READY = 5
@@ -16,42 +17,64 @@ PROGRESS_ALMOST_DONE = 95
 def compute_graph(job_id, data_file):
     job = job_get(job_id)
 
+    # save distance matrix
+
     work_dir = path.dirname(data_file)
-    distance_matrix_file = path.join(work_dir, 'base_distance_matrix.bin')
+    distance_matrix_file = path.join(work_dir, 'base_distance_matrix')
 
     base_graph = graph_load(data_file)
     distance_matrix = graph_distance_matrix(base_graph)
-    dipha_save_distance_matrix(distance_matrix, distance_matrix_file)
-
-    dipha_out = dipha_exec(distance_matrix_file)
-    base_diagram = dipha_extract_diagram(dipha_out, 'base')
+    np.save(distance_matrix_file, distance_matrix)
 
     points = multidimensional_scaling(distance_matrix)
-    generate_base_persistence_diagram(work_dir)
-    make_base_preview_image(points, base_graph, work_dir)
+    points_file = path.join(work_dir, 'base_points')
+    np.save(points_file, points)
+
+    # make_base_preview_image(points, base_graph, work_dir)
+
+    call_r_script('base_graph.r', work_dir)
 
     directions = sphere_random_directions(300)
     direction_results = {}
 
     progress_step = round((PROGRESS_ALMOST_DONE - PROGRESS_PREVIEW_READY) / len(directions), 2)
 
-    for index, (longitude, latitude) in enumerate(directions):
-        direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, longitude,
-                                                           latitude)
-        if job.progress < PROGRESS_PREVIEW_READY:
-            job.progress = PROGRESS_PREVIEW_READY
-        else:
-            job.progress = round(job.progress + progress_step, 2)
-        job.save()
+    for index, (longitude, latitude) in enumerate(directions[0:10]):
 
-    job.results = {
-        'best': min(direction_results.values(), key=lambda d: d['distance'])['index'],
-        'worst': max(direction_results.values(), key=lambda d: d['distance'])['index'],
-        'directions': direction_results
-    }
-    job.progress = 100
-    job.status = job.STATUS_DONE
-    job.save()
+        protected_points = project_point_cloud(points, longitude, latitude)
+        projected_points_file = path.join(work_dir, 'projected_%i_points' % index)
+        np.save(projected_points_file, protected_points)
+
+        # call r to generate diagram and calculate bottleneck distance
+        call_r_script('projected_graph.r', work_dir, index)
+
+        # make_projection_preview_image(protected_points, base_graph, work_dir, index, index, longitude, latitude)
+        # distance_matrix = compute_points_distance_matrix(protected_points)
+
+        # distance = calculate_bottleneck_distance(diagram_file, base_diagram)
+        # direction_results[index] = {
+        #     'index': index,
+        #     'longitude': longitude,
+        #     'latitude': latitude,
+        #     'distance': distance
+        # }
+
+        # direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, longitude,
+        #                                                    latitude)
+        # if job.progress < PROGRESS_PREVIEW_READY:
+        #     job.progress = PROGRESS_PREVIEW_READY
+        # else:
+        #     job.progress = round(job.progress + progress_step, 2)
+        # job.save()
+
+    # job.results = {
+    #     'best': min(direction_results.values(), key=lambda d: d['distance'])['index'],
+    #     'worst': max(direction_results.values(), key=lambda d: d['distance'])['index'],
+    #     'directions': direction_results
+    # }
+    # job.progress = 100
+    # job.status = job.STATUS_DONE
+    # job.save()
 
 
 def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, longitude, latitude):

@@ -16,7 +16,7 @@ def graph_load(file):
         :param file:
         :return: lil_matrix
         """
-    return np.genfromtxt(file, dtype=[('from', np.intp), ('to', np.intp), ('weight', np.float)])
+    return np.genfromtxt(file, delimiter='\t', dtype=[('from', np.intp), ('to', np.intp), ('weight', np.float)])
 
 
 def graph_distance_matrix(data):
@@ -79,3 +79,15 @@ def calculate_bottleneck_distance(diagram_file, base_diagram_file):
         result = float(f.read())
 
     return result
+
+
+def call_r_script(file, *args):
+    chdir(path.join(settings.BASE_DIR, 'scripts'))
+    command = 'Rscript %s ' % file
+    command += ' '.join([str(i) for i in args])
+
+    logging.info(command)
+
+    proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    while proc.poll() is None:
+        sleep(0.3)
