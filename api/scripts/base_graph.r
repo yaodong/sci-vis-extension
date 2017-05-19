@@ -16,7 +16,7 @@ points = npyLoad(points_file)
 
 diagram = alphaShapeDiag(points, library = "GUDHI")
 
-png(file='base.png', width=1280, height=1280, res=200, units="px")
+png(file='base_diagram.png', width=1280, height=1280, res=200, units="px")
 write.table(diagram[["diagram"]], file="base_diagram.table", sep=",")
 
 dev.off()

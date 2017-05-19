@@ -30,7 +30,7 @@ def compute_graph(job_id, data_file):
     points_file = path.join(work_dir, 'base_points')
     np.save(points_file, points)
 
-    # make_base_preview_image(points, base_graph, work_dir)
+    make_base_preview_image(points, base_graph, work_dir)
 
     call_r_script('base_graph.r', work_dir)
 
@@ -39,71 +39,46 @@ def compute_graph(job_id, data_file):
 
     progress_step = round((PROGRESS_ALMOST_DONE - PROGRESS_PREVIEW_READY) / len(directions), 2)
 
-    for index, (longitude, latitude) in enumerate(directions[0:10]):
+    for index, (longitude, latitude) in enumerate(directions):
 
         protected_points = project_point_cloud(points, longitude, latitude)
         projected_points_file = path.join(work_dir, 'projected_%i_points' % index)
         np.save(projected_points_file, protected_points)
 
+        make_projection_preview_image(protected_points, base_graph, work_dir, index)
+
         # call r to generate diagram and calculate bottleneck distance
         call_r_script('projected_graph.r', work_dir, index)
 
-        # make_projection_preview_image(protected_points, base_graph, work_dir, index, index, longitude, latitude)
-        # distance_matrix = compute_points_distance_matrix(protected_points)
+        result_file = path.join(work_dir, 'projected_%i_distance.txt' % index)
+        distance = float(open(result_file).read())
 
-        # distance = calculate_bottleneck_distance(diagram_file, base_diagram)
-        # direction_results[index] = {
-        #     'index': index,
-        #     'longitude': longitude,
-        #     'latitude': latitude,
-        #     'distance': distance
-        # }
+        direction_results[index] = {
+            'index': index,
+            'longitude': longitude,
+            'latitude': latitude,
+            'distance': distance
+        }
 
-        # direction_results[index] = compute_projected_graph(index, points, base_graph, base_diagram, work_dir, longitude,
-        #                                                    latitude)
-        # if job.progress < PROGRESS_PREVIEW_READY:
-        #     job.progress = PROGRESS_PREVIEW_READY
-        # else:
-        #     job.progress = round(job.progress + progress_step, 2)
-        # job.save()
+        if job.progress < PROGRESS_PREVIEW_READY:
+            job.progress = PROGRESS_PREVIEW_READY
+        else:
+            job.progress = round(job.progress + progress_step, 2)
+        job.save()
 
-    # job.results = {
-    #     'best': min(direction_results.values(), key=lambda d: d['distance'])['index'],
-    #     'worst': max(direction_results.values(), key=lambda d: d['distance'])['index'],
-    #     'directions': direction_results
-    # }
-    # job.progress = 100
-    # job.status = job.STATUS_DONE
-    # job.save()
-
-
-def compute_projected_graph(index, base_points, base_graph, base_diagram, work_dir, longitude, latitude):
-    logging.info('processing direction %i' % index)
-
-    points = project_point_cloud(base_points, longitude, latitude)
-    np.save(path.join(work_dir, 'projected_%i_points' % index), points)
-
-    make_projection_preview_image(points, base_graph, work_dir, index, index, longitude, latitude)
-    distance_matrix = compute_points_distance_matrix(points)
-
-    dipha_in_file = path.join(work_dir, 'projected_%i_dipha' % index)
-    dipha_save_distance_matrix(distance_matrix, dipha_in_file)
-
-    dipha_out_file = dipha_exec(dipha_in_file)
-    diagram_file = dipha_extract_diagram(dipha_out_file, 'projected_%i_dipha' % index)
-
-    distance = calculate_bottleneck_distance(diagram_file, base_diagram)
-    return {
-        'index': index,
-        'longitude': longitude,
-        'latitude': latitude,
-        'distance': distance
+    job.results = {
+        'best': min(direction_results.values(), key=lambda d: d['distance'])['index'],
+        'worst': max(direction_results.values(), key=lambda d: d['distance'])['index'],
+        'directions': direction_results
     }
+    job.progress = 100
+    job.status = job.STATUS_DONE
+    job.save()
 
 
-def make_projection_preview_image(coordinates, base_graph, work_dir, basename, index, longitude, latitude):
-    image_path = path.join(work_dir, 'projected_%s_preview_dots.png' % basename)
-    linked_image_path = path.join(work_dir, 'projected_%s_preview_graph.png' % basename)
+def make_projection_preview_image(coordinates, base_graph, work_dir, index):
+    image_path = path.join(work_dir, 'projected_%s_preview_dots.png' % index)
+    linked_image_path = path.join(work_dir, 'projected_%s_preview_graph.png' % index)
 
     from matplotlib import pyplot as plt
 

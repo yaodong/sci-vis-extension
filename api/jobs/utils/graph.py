@@ -16,7 +16,7 @@ def graph_load(file):
         :param file:
         :return: lil_matrix
         """
-    return np.genfromtxt(file, delimiter='\t', dtype=[('from', np.intp), ('to', np.intp), ('weight', np.float)])
+    return np.genfromtxt(file, delimiter=',', dtype=[('from', np.intp), ('to', np.intp), ('weight', np.float)])
 
 
 def graph_distance_matrix(data):
