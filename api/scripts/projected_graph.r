@@ -7,7 +7,7 @@ index = args[2]
 library(TDA)
 library(RcppCNPy)
 
-maxscale <- 5
+maxscale <- 50
 maxdimension <- 1
 
 setwd(work_dir)

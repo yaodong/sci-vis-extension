@@ -8,8 +8,6 @@ setwd(work_dir)
 library(TDA)
 library(RcppCNPy)
 
-maxscale <- 5
-maxdimension <- 1
 
 points_file = "base_points.npy"
 points = npyLoad(points_file)
