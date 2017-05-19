@@ -6,7 +6,6 @@ import logging
 
 BASE_COORDINATE_FILENAME = 'base.tsv'
 
-
 def job_get(job_id):
     from jobs.models import Job
     return Job.objects.get(pk=job_id)
@@ -23,19 +22,19 @@ def job_prepare_work_dir(job):
     return work_dir
 
 
-def job_download_data_file(file_id, file_path):
+def get_file_meta(file_id):
     file_meta_url = 'https://www.filestackapi.com/api/file/%s/metadata' % file_id
+    return requests.get(file_meta_url).json()
+
+
+def job_download_data_file(file_id, local_file_path, meta_data):
     file_download_url = 'https://www.filestackapi.com/api/file/%s?dl=true' % file_id
 
-    meta_data = requests.get(file_meta_url).json()
-    if meta_data['mimetype'] != 'text/tab-separated-values':
-        raise Exception("invalid base coordinates")
-
     req = requests.get(file_download_url, stream=True)
-    with open(file_path, 'wb') as f:
+    with open(local_file_path, 'wb') as f:
         for chunk in req.iter_content(chunk_size=1024):
             if chunk:
                 f.write(chunk)
 
     logging.info('base coordinates downloaded')
-    return file_path
+    return local_file_path
