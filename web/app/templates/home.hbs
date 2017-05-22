@@ -6,7 +6,7 @@
 <div class="jobs">
   {{#each model as |job|}}
     {{#if job.id}}
-      <div class="jobs__job">
+      <div class="jobs__job" data-id="{{job.id}}">
         <div class="jobs__name">{{job.name}}</div>
         <div class="jobs__image">
           {{#if (gte job.progress 5)}}
