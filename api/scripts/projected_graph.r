@@ -18,6 +18,7 @@ diagram = ripsDiag(points, maxdimension, maxscale, library = "GUDHI")
 
 image_file = paste("projected", index, "diagram.png", sep="_")
 png(file=image_file, width=800, height=800, res=200, units="px")
+plot.diagram(diagram[["diagram"]], main = "Persistence Diagram")
 
 diagram_file = paste("projected", index, "diagram.table", sep="_")
 write.table(diagram[["diagram"]], file=diagram_file, sep=",")

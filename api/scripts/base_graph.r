@@ -17,4 +17,6 @@ diagram = alphaShapeDiag(points)
 
 png(file='base_diagram.png', width=800, height=800, res=200, units="px")
 
+plot.diagram(diagram[["diagram"]], main = "Persistence Diagram")
+
 write.table(diagram[["diagram"]], file="base_diagram.table", sep=",")
