@@ -16,9 +16,10 @@ points_file = paste("projected", index, "points.npy", sep="_")
 points = npyLoad(points_file)
 diagram = ripsDiag(points, maxdimension, maxscale, library = "GUDHI")
 
+diagMaxScale = ceiling(maxscale * 1.2)
 image_file = paste("projected", index, "diagram.png", sep="_")
-png(file=image_file, width=800, height=1024, res=1024, units="px")
-plot.diagram(diagram[["diagram"]], main = "Persistence Diagram", diagLim = cbind(0, maxscale))
+png(file=image_file, width=1024, height=1024, res=200, units="px")
+plot.diagram(diagram[["diagram"]], main = "Persistence Diagram", diagLim = cbind(0, diagMaxScale))
 
 diagram_file = paste("projected", index, "diagram.table", sep="_")
 write.table(diagram[["diagram"]], file=diagram_file, sep=",")
