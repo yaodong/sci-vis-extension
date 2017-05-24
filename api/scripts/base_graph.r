@@ -15,8 +15,21 @@ points = npyLoad(points_file)
 
 diagram = alphaShapeDiag(points)
 
-png(file='base_diagram.png', width=800, height=800, res=200, units="px")
+png(file='base_diagram.png', width=1024, height=1024, res=200, units="px")
 
-plot.diagram(diagram[["diagram"]], main = "Persistence Diagram")
+deathTimeList = diagram[["diagram"]][,"Death"]
+
+orderedDeathTimeIndexes = order(deathTimeList, decreasing = TRUE)
+
+diagramScaleLimit = 50
+
+for (index in orderedDeathTimeIndexes) {
+    if (deathTimeList[index] != Inf) {
+        diagramScaleLimit = ceiling(deathTimeList[index] * 1.2)
+        break
+    }
+}
+
+plot.diagram(diagram[["diagram"]], main = "Persistence Diagram", diagLim = cbind(0, diagramScaleLimit))
 
 write.table(diagram[["diagram"]], file="base_diagram.table", sep=",")
