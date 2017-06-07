@@ -19,6 +19,8 @@
         <div class="job-info__value">
           {{bestDistance}}
         </div>
+        <div class="job-info__key">Data File</div>
+        <div class="job-info__value"><a href="https://www.filestackapi.com/api/file/{{model.params.file}}?dl=true">download</a></div>
       </td>
       <!-- preview (3d) -->
       <td class="job-info__cell">
@@ -98,7 +100,7 @@
           <li class="inspector__section">
             <div class="inspector__key">Persistence Diagram</div>
             <div class="inspector__value">
-              {{inspector-diagram model=model index=selectedIndex title="Persistence Diagram" type="dipha_diagram"}}
+              {{inspector-diagram model=model index=selectedIndex title="Persistence Diagram" type="diagram"}}
             </div>
           </li>
         </ul>

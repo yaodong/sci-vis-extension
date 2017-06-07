@@ -1,5 +1,4 @@
 from celery import shared_task
-from jobs.utils.dipha import *
 from jobs.utils.graph import *
 from jobs.utils.job import job_get
 from jobs.utils.sphere import sphere_random_directions
@@ -7,22 +6,29 @@ from jobs.utils.point_cloud import project_point_cloud
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import animation
 import numpy as np
-
+import logging
 
 PROGRESS_PREVIEW_READY = 5
 PROGRESS_ALMOST_DONE = 95
+
+FILE_TYPE_DELIMITERS = {
+    'text/tab-separated-values': '\t',
+    'text/csv': ',',
+}
 
 
 @shared_task()
 def compute_graph(job_id, data_file):
     job = job_get(job_id)
 
-    # save distance matrix
+    logging.info('start job %i' % job_id)
 
     work_dir = path.dirname(data_file)
     distance_matrix_file = path.join(work_dir, 'base_distance_matrix')
 
-    base_graph = graph_load(data_file)
+    data_delimiter = FILE_TYPE_DELIMITERS[job.params['file_meta']['mimetype']]
+    base_graph = graph_load(data_file, delimiter=data_delimiter)
+
     distance_matrix = graph_distance_matrix(base_graph)
     np.save(distance_matrix_file, distance_matrix)
 

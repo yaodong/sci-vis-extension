@@ -11,12 +11,13 @@ import logging
 import numpy as np
 
 
-def graph_load(file):
+def graph_load(file, delimiter=','):
     """
         :param file:
+        :param delimiter:
         :return: lil_matrix
         """
-    return np.genfromtxt(file, delimiter=',', dtype=[('from', np.intp), ('to', np.intp), ('weight', np.float)])
+    return np.genfromtxt(file, delimiter=delimiter, dtype=[('from', np.intp), ('to', np.intp), ('weight', np.float)])
 
 
 def graph_distance_matrix(data):

@@ -2,7 +2,7 @@
   var client = filestack.init('AWPOg9H9eRiKlGign4px8z');
   function showPicker() {
     client.pick({
-      accept: ['text/tab-separated-values'],
+      accept: ['text/tab-separated-values', 'text/csv'],
       maxFiles: 1,
       minFiles: 1,
     }).then(function (result) {
