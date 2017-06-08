@@ -3,28 +3,6 @@
   <div class="col-sm-6 text-right">{{#link-to "jobs.new" class="btn btn-default"}}Start New{{/link-to}}</div>
 </div>
 
-<div class="jobs">
-  {{#each model as |job|}}
-    {{#if job.id}}
-      <div class="jobs__job" data-id="{{job.id}}">
-        <div class="jobs__name">{{job.name}}</div>
-        <div class="jobs__image">
-          {{#if (gte job.progress 5)}}
-            <img width="180" height="180" src="{{imageBaseUrl}}/{{job.id}}/projected_0_preview_graph.png" />
-          {{else}}
-            <small>preview not available yet</small>
-          {{/if}}
-        </div>
-        <div class="jobs__progress">
-          {{#if (eq job.status 0)}}
-            {{#link-to "jobs.view" job.id class="btn btn-success btn-block"}}View Result{{/link-to}}
-          {{else if (gt job.status 0)}}
-            <button type="button" class="btn btn-danger">Error</button>
-          {{else}}
-            <button type="button" class="btn btn-success btn-block" disabled>Running <small>{{job.progress}}%</small></button>
-          {{/if}}
-        </div>
-      </div>
-    {{/if}}
-  {{/each}}
-</div>
+{{jobs-index jobs=model title="Graph Datasets" format="graph"}}
+
+{{jobs-index jobs=model title="Point Cloud Datasets" format="point_cloud"}}

@@ -1,0 +1,8 @@
+<div class="row stage-header">
+  <div class="col-sm-6 stage-title">All Datasets</div>
+  <div class="col-sm-6 text-right">{{#link-to "datasets.new" class="btn btn-default"}}Upload{{/link-to}}</div>
+</div>
+
+{{#each model as |dataset|}}
+  <div>{{dataset.id}} - {{dataset.name}}</div>
+{{/each}}

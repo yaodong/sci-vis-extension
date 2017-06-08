@@ -19,12 +19,13 @@ from django.conf.urls.static import static
 from rest_framework import routers
 from users import views as users_views
 from jobs import views as jobs_views
+from datasets import views as datasets_views
 
 router = routers.DefaultRouter()
 router.register(r'users', users_views.UserViewSet)
 router.register(r'groups', users_views.GroupViewSet)
 router.register(r'jobs', jobs_views.JobViewSet)
-
+router.register(r'datasets', datasets_views.DatasetViewSet)
 
 urlpatterns = [
     url(r'^api/', include(router.urls)),
