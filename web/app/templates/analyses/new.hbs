@@ -1,0 +1,30 @@
+<div class="row stage-header">
+  <div class="col-sm-6 stage-title">Process Dataset</div>
+  <div class="col-sm-6 text-right">{{#link-to "analyses" class="btn btn-default"}}Back to Process List{{/link-to}}</div>
+</div>
+
+<div class="card">
+  <div class="card__title">Dataset</div>
+  <div class="card__content">
+    <strong>{{model.dataset.name}}</strong>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card__title">Params</div>
+  <form id="process-new-form" method="post" {{action "submit" on="submit"}} class="padding-md">
+    {{input type="hidden" value=model.dataset.id}}
+
+    {{#form-group label="Name" errors=model.analysis.errors.name}}
+      {{input type="text" value=model.analysis.name class="form-control"}}
+    {{/form-group}}
+
+    {{#form-group label="Maximum Iterations"}}
+      {{input value=model.analysis.params.max_iterations class="form-control"}}
+      <span class="help-text">specifies the maximum number of iterations the algorithm should take before it stops.</span>
+    {{/form-group}}
+
+    <button type="submit" class="btn btn-success">Submit</button>
+
+  </form>
+</div>

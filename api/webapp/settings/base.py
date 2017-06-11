@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 
 from os.path import dirname
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = dirname(dirname(dirname(os.path.abspath(__file__))))
 
@@ -43,7 +44,8 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'corsheaders',
     'jobs',
-    'datasets'
+    'datasets',
+    'analyses'
 ]
 
 MIDDLEWARE = [
@@ -74,7 +76,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'webapp.wsgi.application'
 
@@ -124,8 +125,26 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+JSON_API_FORMAT_KEYS = 'camelize'
+
+JSON_API_FORMAT_TYPES = 'camelize'
+JSON_API_PLURALIZE_TYPES = True
+
 REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
+
+    'EXCEPTION_HANDLER': 'rest_framework_json_api.exceptions.exception_handler',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework_json_api.pagination.PageNumberPagination',
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework_json_api.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser'
+    ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework_json_api.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ),
+    'DEFAULT_METADATA_CLASS': 'rest_framework_json_api.metadata.JSONAPIMetadata',
 }
 
 CORS_ORIGIN_ALLOW_ALL = True

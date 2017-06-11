@@ -4,5 +4,5 @@
 </div>
 
 {{#each model as |dataset|}}
-  <div>{{dataset.id}} - {{dataset.name}}</div>
+  <div>{{dataset.id}} - {{dataset.name}} {{#link-to "analyses.new" (query-params dataset_id=dataset.id)}}new process using this dataset{{/link-to}}</div>
 {{/each}}

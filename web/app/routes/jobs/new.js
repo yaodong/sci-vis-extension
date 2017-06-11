@@ -8,7 +8,7 @@ export default Ember.Route.extend({
       inputs: {},
       outputs: {},
       percentage: 1
-    })
+    });
   },
   resetController(controller, isExiting) {
     if (isExiting) {
