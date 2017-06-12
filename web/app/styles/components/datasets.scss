@@ -1,0 +1,15 @@
+.dataset-index {
+  background: #fff;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.dataset-index__item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.dataset-index__item:last-child {
+  border-bottom: none;
+}

@@ -3,6 +3,15 @@
   <div class="col-sm-6 text-right">{{#link-to "datasets.new" class="btn btn-default"}}Upload{{/link-to}}</div>
 </div>
 
-{{#each model as |dataset|}}
-  <div>{{dataset.id}} - {{dataset.name}} {{#link-to "analyses.new" (query-params dataset_id=dataset.id)}}new process using this dataset{{/link-to}}</div>
-{{/each}}
+<div class="dataset-index">
+  {{#each model as |dataset|}}
+    <div class="row dataset-index__item">
+      <div class="col-xs-9">
+        {{dataset.name}}
+      </div>
+      <div class="col-xs-3">
+        {{#link-to "analyses.new" (query-params dataset_id=dataset.id) class="btn btn-default"}}New Analysis{{/link-to}}
+      </div>
+    </div>
+  {{/each}}
+</div>
