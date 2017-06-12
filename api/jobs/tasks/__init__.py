@@ -13,7 +13,7 @@ SUPPORTED_FILE_TYPES = [
 def dispatch_computing(analysis_id):
     analysis = get_analysis_object(analysis_id)
 
-    file_name = analysis.dataset.filename
+    file_name = analysis.dataset.file_name
     file_meta = fetch_file_mate(file_name)
 
     if file_meta['mimetype'] not in SUPPORTED_FILE_TYPES:

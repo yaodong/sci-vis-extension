@@ -46,14 +46,11 @@ class Process:
         makedirs(work_dir)
 
         # file provider urls
-        file_id = self.analysis.dataset.filename
-        file_meta_url = 'https://www.filestackapi.com/api/file/%s/metadata' % file_id
+        file_id = self.analysis.dataset.file_name
         file_download_url = 'https://www.filestackapi.com/api/file/%s?dl=true' % file_id
 
         # fetch file meta
-        logging.info('validate dataset file type')
-        file_meta = requests.get(file_meta_url).json()
-        if file_meta['mimetype'] != 'text/csv':
+        if self.analysis.dataset.file_meta['mimetype'] != 'text/csv':
             raise RuntimeError("invalid dataset format")
 
         # download files

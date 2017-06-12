@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import django.contrib.postgres.fields.jsonb
 
 
 class Migration(migrations.Migration):
@@ -19,7 +20,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_created=True, auto_now_add=True)),
                 ('name', models.CharField(max_length=128)),
-                ('filename', models.CharField(max_length=32)),
+                ('file_name', models.CharField(max_length=32)),
+                ('file_meta', django.contrib.postgres.fields.jsonb.JSONField(null=True)),
                 ('format', models.CharField(max_length=32)),
             ],
         ),
