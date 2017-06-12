@@ -31,7 +31,7 @@ def sphere_random_directions(amount=150):
 
         directions.append((longitude, latitude))
 
-    return directions
+    return directions[0:amount]
 
 
 def _fibonacci_sphere(samples=300, randomize=True):

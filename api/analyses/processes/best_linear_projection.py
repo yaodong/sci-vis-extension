@@ -11,7 +11,7 @@ class BestLinearProjection(Process, GraphToPoints):
         graph_scaling_method = 'MDS'
         graph_scaling_dimension = 3
         optimization_method = 'downhill'
-        optimization_sample_szie = 1
+        optimization_sample_size = 1
 
         # ensure the base data is a point cloud
         data_format = self.analysis.dataset.format
@@ -22,7 +22,7 @@ class BestLinearProjection(Process, GraphToPoints):
         )
 
         # create initial sample data
-        self.create_samples(optimization_sample_szie)
+        self.create_samples(optimization_sample_size)
 
     def tick(self):
         pass

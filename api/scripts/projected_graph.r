@@ -3,11 +3,11 @@
 args = commandArgs(trailingOnly=TRUE)
 work_dir = args[1]
 index = args[2]
+maxscale = as.integer(args[3])
 
 library(TDA)
 library(RcppCNPy)
 
-maxscale <- 5
 maxdimension <- 1
 
 setwd(work_dir)

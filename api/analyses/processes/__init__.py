@@ -17,15 +17,13 @@ class Process:
         self.analysis = analysis
         self.contexts = self.analysis.contexts  # type: ContextHandler
 
-    def init(self):
-        raise NotImplementedError()
-
     def tick(self):
         current_state = self.contexts.read('state', None)
 
+        logging.info('process tick %i:%s' % (self.analysis.id, current_state))
+
         if current_state is None:
-            self.before_init()
-            self.init()
+            self.download_dataset()
             self.contexts.write('state', self.STATE_READY)
         else:
             handle_func = getattr(self, 'when_%s' % current_state)
@@ -34,7 +32,7 @@ class Process:
     def when_ready(self):
         pass
 
-    def before_init(self):
+    def download_dataset(self):
         from django.conf import settings
 
         logging.info('cleaning analysis contexts')

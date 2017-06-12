@@ -30,6 +30,6 @@ for (index in orderedDeathTimeIndexes) {
     }
 }
 
-plot.diagram(diagram[["diagram"]], main = "Persistence Diagram", diagLim = cbind(0, diagramScaleLimit))
+plot.diagram(diagram[["diagram"]], main = "Persistence Diagram (3D)", diagLim = cbind(0, diagramScaleLimit))
 
 write.table(diagram[["diagram"]], file="base_diagram.table", sep=",")
