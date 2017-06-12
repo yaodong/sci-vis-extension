@@ -1,33 +1,29 @@
 from os import path
 from celery import shared_task
-from jobs.utils.job import job_prepare_work_dir, job_download_data_file, job_get, get_file_meta
-from jobs.tasks.point_cloud import compute_point_cloud
-from jobs.tasks.graph import compute_graph
+from analyses.utils.job import *
+from analyses.utils.point_cloud import compute_point_cloud
+from analyses.utils.graph import compute_graph
 
 SUPPORTED_FILE_TYPES = [
-    'text/tab-separated-values',
     'text/csv',
 ]
 
 
 @shared_task()
-def dispatch_computing(job_id):
-    job = job_get(job_id)
-    job.progress = 1
-    job.status = job.STATUS_STARTED
+def dispatch_computing(analysis_id):
+    analysis = get_analysis_object(analysis_id)
 
-    file_id = job.param('file')
-    file_meta = get_file_meta(file_id)
-    job.params['file_meta'] = file_meta
+    file_name = analysis.dataset.filename
+    file_meta = fetch_file_mate(file_name)
 
     if file_meta['mimetype'] not in SUPPORTED_FILE_TYPES:
         raise Exception("invalid base coordinates")
 
-    job.save()
-
-    work_dir = job_prepare_work_dir(job)
+    work_dir = task_prepare_dir(analysis.id)
     data_file_path = path.join(work_dir, 'base.dat')
-    job_download_data_file(job.param('file'), data_file_path, file_meta)
+
+
+    task_download_dataset(job.param('file'), data_file_path)
 
     data_format = job.param('data_format')
 

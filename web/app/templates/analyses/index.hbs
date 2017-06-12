@@ -1,5 +1,6 @@
 {{#each model as |analysis|}}
-  <div>{{analysis.name}}</div>
+  <div>{{analysis.title}}</div>
   <div>{{analysis.dataset.id}}</div>
   <div>{{analysis.dataset.name}}</div>
+  {{#link-to "analyses.view" analysis.id}}view{{/link-to}}
 {{/each}}

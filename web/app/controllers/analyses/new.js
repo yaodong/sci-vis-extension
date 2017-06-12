@@ -10,9 +10,8 @@ export default Ember.Controller.extend({
       const analysis = this.get('model.analysis');
 
       analysis.set('dataset', this.get('model.dataset'));
-
       analysis.save().then(() => {
-        // that.transitionToRoute('datasets');
+        that.transitionToRoute('analyses.view', analysis.id);
       });
     }
   }

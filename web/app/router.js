@@ -17,7 +17,7 @@ Router.map(function() {
   });
 
   this.route('analyses', function() {
-    this.route('view');
+    this.route('view', { path: '/:id' });
     this.route('new');
   });
 });
