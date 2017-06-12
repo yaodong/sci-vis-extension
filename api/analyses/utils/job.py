@@ -4,16 +4,15 @@ from django.conf import settings
 import requests
 import logging
 
-__all__ = ['get_analysis_object', 'fetch_file_meta', 'task_prepare_dir', 'task_download_dataset']
+BASE_COORDINATE_FILENAME = 'base.tsv'
+
+def job_get(job_id):
+    from jobs.models import Job
+    return Job.objects.get(pk=job_id)
 
 
-def get_analysis_object(analysis_id):
-    from analyses.models import Analysis
-    return analysis.objects.get(pk=analysis_id)
-
-
-def task_prepare_dir(analysis_id):
-    work_dir = path.join(settings.DATA_DIR, 'analyses', str(analysis_id))
+def job_prepare_work_dir(job):
+    work_dir = path.join(settings.DATA_DIR, 'jobs', str(job.id))
 
     if path.isdir(work_dir):
         rmtree(work_dir)
@@ -23,12 +22,12 @@ def task_prepare_dir(analysis_id):
     return work_dir
 
 
-def fetch_file_meta(file_id):
+def get_file_meta(file_id):
     file_meta_url = 'https://www.filestackapi.com/api/file/%s/metadata' % file_id
     return requests.get(file_meta_url).json()
 
 
-def task_download_dataset(file_id, local_file_path, meta_data):
+def job_download_data_file(file_id, local_file_path, meta_data):
     file_download_url = 'https://www.filestackapi.com/api/file/%s?dl=true' % file_id
 
     req = requests.get(file_download_url, stream=True)

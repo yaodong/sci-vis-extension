@@ -1,15 +1,17 @@
 import random
 from numpy import *
 
+__all__ = ['sphere_random_directions']
+
 
 # Cartesian to Horizontal
-def sphere_random_directions(samples=150):
+def sphere_random_directions(amount=150):
     """
-    :param samples:
+    :param amount:
     :return: radians
     """
     directions = []
-    points = _fibonacci_sphere(samples * 2)
+    points = _fibonacci_sphere(amount * 2)  # whole sphere
     for x, y, z in points:
         if z < 0:
             continue

@@ -1,7 +1,6 @@
-import numpy as np
 from scipy.sparse import lil_matrix
 from scipy.sparse.csgraph import shortest_path
-from sklearn import manifold
+
 from sklearn.metrics.pairwise import euclidean_distances
 from os import path, chdir
 from django.conf import settings
@@ -47,13 +46,6 @@ def compute_points_distance_matrix(points):
     :return: 
     """
     return euclidean_distances(points)
-
-
-def multidimensional_scaling(distance_matrix, dimensional=3, max_iter=3000):
-    seed = np.random.RandomState(seed=3)
-    mds = manifold.MDS(n_components=dimensional, max_iter=max_iter, eps=1e-9, random_state=seed,
-                       dissimilarity="precomputed", n_jobs=1)
-    return mds.fit(distance_matrix).embedding_
 
 
 def calculate_bottleneck_distance(diagram_file, base_diagram_file):

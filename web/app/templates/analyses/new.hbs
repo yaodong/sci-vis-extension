@@ -15,8 +15,8 @@
   <form id="process-new-form" method="post" {{action "submit" on="submit"}} class="padding-md">
     {{input type="hidden" value=model.dataset.id}}
 
-    {{#form-group label="Name" errors=model.analysis.errors.name}}
-      {{input type="text" value=model.analysis.name class="form-control"}}
+    {{#form-group label="title" errors=model.analysis.errors.title}}
+      {{input type="text" value=model.analysis.title class="form-control"}}
     {{/form-group}}
 
     {{#form-group label="Maximum Iterations"}}
