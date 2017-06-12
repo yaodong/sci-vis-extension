@@ -3,6 +3,13 @@ import Ember from 'ember';
 export default Ember.Controller.extend({
   uploadErrors: null,
   actions: {
+
+    fileNameChanged(file_name) {
+      if (!this.get('model.name')) {
+        this.set('model.name', file_name);
+      }
+    },
+
     submit() {
       let $ = Ember.$;
 
@@ -27,7 +34,7 @@ export default Ember.Controller.extend({
         btnSubmit.attr('disabled', 'true');
         model.set('name', form_data['name']);
         model.set('format', form_data['format']);
-        model.set('filename', form_data['file']);
+        model.set('fileName', form_data['file']);
 
         model.save().then(() => {
           that.transitionToRoute('datasets');
