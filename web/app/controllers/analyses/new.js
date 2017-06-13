@@ -32,9 +32,10 @@ export default Ember.Controller.extend({
 
   processDefaults: {
     sphere_evenly_sampling: [
-      ['sample_size', 200]
+      ['sample_size', 200],
     ],
     search_best_linear_projection: [
+      ['scaling_dimension', 3],
       ['max_iterations', 100]
     ]
   },
@@ -67,9 +68,9 @@ export default Ember.Controller.extend({
       const analysis = this.get('model.analysis');
 
       analysis.title = this.get('title');
-      //analysis.set('dataset', this.get('model.dataset'));
+      analysis.set('dataset', this.get('model.dataset'));
       analysis.save().then(() => {
-        //that.transitionToRoute('analyses.view', analysis.id);
+        that.transitionToRoute('analyses.view', analysis.id);
       });
     }
   }

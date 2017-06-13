@@ -6,16 +6,16 @@ from analyses.utils import scripts
 
 
 class SphereEvenlySampling(Process):
+    """
+    params:
+      - sample_size
+      - scaling_method  <- TODO
+    """
     FIXED_DIMENSION = 3  # only process 3D data
 
     STATE_COMPUTE_BASE = 'compute_base'
     STATE_COMPUTE_DIRECTIONS = 'compute_directions'
     STATE_SUMMARY = 'summary'
-
-    params = {
-        'graph_scaling_method': 'MDS',
-        'sample_size': 100
-    }
 
     def when_ready(self):
         logging.info('analysis is ready')
@@ -90,7 +90,7 @@ class SphereEvenlySampling(Process):
             graph_scaling(
                 dataset_path,
                 points_path,
-                self.params['graph_scaling_method'],
+                "MDS",                  # TODO self.params['scaling_method'],
                 self.FIXED_DIMENSION
             )
         else:

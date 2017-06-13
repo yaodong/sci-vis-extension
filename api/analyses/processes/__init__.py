@@ -10,12 +10,17 @@ class Process:
 
     STATE_READY = 'ready'
 
+    params = {}
+    dataset = None
+
     class HasFinished(RuntimeError):
         pass
 
     def __init__(self, analysis):
         self.analysis = analysis
         self.contexts = self.analysis.contexts  # type: ContextHandler
+        self.parmas = self.analysis.params
+        self.dataset = self.analysis.dataset
 
     def tick(self):
         current_state = self.contexts.read('state', None)
@@ -40,7 +45,8 @@ class Process:
 
         # prepare files
         logging.info('prepare work dir')
-        work_dir = path.join(settings.DATA_DIR, 'analyses', str(self.analysis.id))
+        work_dir = path.join(settings.DATA_DIR,
+                             'analyses', str(self.analysis.id))
         if path.isdir(work_dir):
             rmtree(work_dir)
         makedirs(work_dir)

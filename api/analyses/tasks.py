@@ -3,6 +3,10 @@ from analyses.models import Analysis
 from analyses.processes import sphere_evenly_sampling
 import logging
 
+PROCESS_CLASSES = {
+    'sphere_evenly_samping': sphere_evenly_sampling.SphereEvenlySampling
+}
+
 
 @shared_task()
 def analysis_process(instance_id):
@@ -10,7 +14,8 @@ def analysis_process(instance_id):
     analysis = Analysis.objects.get(pk=instance_id)
 
     # TODO params from user
-    process_class = sphere_evenly_sampling.SphereEvenlySampling
+    params = analysis.params
+    process_class = PROCESS_CLASSES[params['process']]
 
     process = process_class(analysis)
     try:
