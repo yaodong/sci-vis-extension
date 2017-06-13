@@ -30,6 +30,12 @@ body {
   margin-bottom: 0;
 }
 
+.container {
+  max-width: 750px;
+}
+
+@import "components/card";
+@import "components/spacing";
 @import "components/stage";
 @import "components/jobs";
 @import "components/rotating-sphere";
@@ -39,3 +45,5 @@ body {
 @import "components/colorbar";
 @import "components/job-info";
 @import "components/inspector";
+@import "components/datasets";
+@import "components/analyses";

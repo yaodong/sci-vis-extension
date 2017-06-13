@@ -18,14 +18,14 @@ from django.conf.urls import url, include
 from django.conf.urls.static import static
 from rest_framework import routers
 from users import views as users_views
-from jobs import views as jobs_views
 from datasets import views as datasets_views
+from analyses import views as analyses_views
 
-router = routers.DefaultRouter()
+router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'users', users_views.UserViewSet)
 router.register(r'groups', users_views.GroupViewSet)
-router.register(r'jobs', jobs_views.JobViewSet)
 router.register(r'datasets', datasets_views.DatasetViewSet)
+router.register(r'analyses', analyses_views.AnalysisViewSet)
 
 urlpatterns = [
     url(r'^api/', include(router.urls)),

@@ -1,41 +1,51 @@
 <div class="row stage-header">
-  <div class="col-sm-6 stage-title">Upload</div>
+  <div class="col-sm-6 stage-title">Add a dataset</div>
   <div class="col-sm-6 text-right">{{#link-to "datasets.index" class="btn btn-default"}}Back to List{{/link-to}}</div>
 </div>
 
 <form id="datasets-new-form" method="post" {{action "submit" on="submit"}}>
-  {{#form-group errors=model.errors.name label="Name"}}
-    {{input type="text" name="name" value=model.name class="form-control"}}
-  {{/form-group}}
 
-  {{#form-group errors=uploadErrors label="Input File"}}
-    {{files-picker}}
-  {{/form-group}}
-
-  {{#form-group label="Data Format"}}
-    <div class="radio">
-      <label>
-        <input type="radio" name="format" value="point_cloud">
-        <strong>Point Cloud</strong>
-      </label>
-      <ul>
-        <li>Each line is a set of comma-separated values which represents a three-dimensional Euclidean coordinate.</li>
-        <li>Line format:<code>{x},{y},{z}</code></li>
-        <li>Line example:<code>17.22,27.19,45.59</code></li>
-      </ul>
+  <div class="card">
+    <div class="card__title">Step 1: Upload dataset file</div>
+    <div class="card__content padding-md">
+      {{files-picker fileNameChanged=(action "fileNameChanged")}}
     </div>
-    <div class="radio">
-      <label>
-        <input type="radio" name="format" value="graph" checked>
-        <strong>Weighted Graph</strong>
-      </label>
-      <ul>
-        <li>Each line is a set of comma-separated values which represents a node ID, linked node ID, edge weight.</li>
-        <li>Line format: <code>{from node ID},{to node ID},{weight}</code></li>
-        <li>Line example: <code>1,2,5</code></li>
-      </ul>
-    </div>
-  {{/form-group}}
+  </div>
 
-  <button type="submit" class="btn btn-success">Submit</button>
+  <div class="card">
+    <div class="card__title">Step 2: Set dataset info</div>
+    <div class="card__content padding-md">
+      {{#form-group errors=model.errors.name label="Dataset Name"}}
+        {{input type="text" name="name" value=model.name class="form-control"}}
+      {{/form-group}}
+
+      {{#form-group label="Data Format"}}
+        <div class="radio">
+          <label>
+            <input type="radio" name="format" value="point_cloud">
+            <strong>Point Cloud</strong>
+          </label>
+          <ul>
+            <li>Each line is a set of comma-separated values which represents a three-dimensional Euclidean coordinate.</li>
+            <li>Line format:<code>{x},{y},{z}</code></li>
+            <li>Line example:<code>17.22,27.19,45.59</code></li>
+          </ul>
+        </div>
+        <div class="radio">
+          <label>
+            <input type="radio" name="format" value="graph" checked>
+            <strong>Weighted Graph</strong>
+          </label>
+          <ul>
+            <li>Each line is a set of comma-separated values which represents a node ID, linked node ID, edge weight.</li>
+            <li>Line format: <code>{from node ID},{to node ID},{weight}</code></li>
+            <li>Line example: <code>1,2,5</code></li>
+          </ul>
+        </div>
+      {{/form-group}}
+
+      <button type="submit" class="btn btn-success">Save</button>
+
+    </div><!-- .card__content -->
+  </div><!-- .card -->
 </form>

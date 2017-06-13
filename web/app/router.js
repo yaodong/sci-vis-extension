@@ -15,6 +15,11 @@ Router.map(function() {
   this.route('datasets', function() {
     this.route('new');
   });
+
+  this.route('analyses', function() {
+    this.route('view', { path: '/:id' });
+    this.route('new');
+  });
 });
 
 export default Router;
