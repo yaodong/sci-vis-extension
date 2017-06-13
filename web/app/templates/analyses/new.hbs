@@ -1,30 +1,78 @@
-<div class="row stage-header">
-  <div class="col-sm-6 stage-title">Process Dataset</div>
-  <div class="col-sm-6 text-right">{{#link-to "analyses" class="btn btn-default"}}Back to Process List{{/link-to}}</div>
-</div>
+<div class="analysis-new">
+    <div class="card">
+      <div class="card__title">Start a Analysis</div>
+      <div class="card__content padding-md">
+        <form method="post" {{action "submit" on="submit"}} class="form-horizontal padding-md">
+          {{#form-group label="Dataset" labelClass="col-sm-3"}}
+            <div class="col-sm-9">
+              <strong><u>{{model.dataset.name}}</u></strong>
+            </div>
+          {{/form-group}}
 
-<div class="card">
-  <div class="card__title">Dataset</div>
-  <div class="card__content">
-    <strong>{{model.dataset.name}}</strong>
-  </div>
-</div>
+          {{#form-group label="Title" errors=model.analysis.errors.title labelClass="col-sm-3"}}
+            <div class="col-sm-9">
+              {{input type="text" value=title class="form-control"}}
+            </div>
+          {{/form-group}}
 
-<div class="card">
-  <div class="card__title">Params</div>
-  <form id="process-new-form" method="post" {{action "submit" on="submit"}} class="padding-md">
-    {{input type="hidden" value=model.dataset.id}}
+          <!-- params -->
 
-    {{#form-group label="title" errors=model.analysis.errors.title}}
-      {{input type="text" value=model.analysis.title class="form-control"}}
-    {{/form-group}}
+          <div class="form-group">
+            <label class="col-sm-3">Process</label>
+            <div class="col-sm-9">
+              {{dropdown-selector
+                  options=options.processes
+                  callbackParam='process'
+                  callbackAction=(action paramsChanged)
+              }}
+            </div>
+          </div>
 
-    {{#form-group label="Maximum Iterations"}}
-      {{input value=model.analysis.params.max_iterations class="form-control"}}
-      <span class="help-text">specifies the maximum number of iterations the algorithm should take before it stops.</span>
-    {{/form-group}}
+          {{#if (eq model.analysis.params.process "sphere_evenly_sampling")}}
+            {{#form-group label="Sample Size" labelClass="col-sm-3"}}
+              <div class="col-sm-9">
+                {{input type="number" min=1
+                    value=model.analysis.params.sample_size
+                    class="form-control"}}
+              </div>
+            {{/form-group}}
+          {{/if}}
 
-    <button type="submit" class="btn btn-success">Submit</button>
 
-  </form>
-</div>
+          {{#if (eq model.analysis.params.process "search_best_linear_projection")}}
+
+            {{#form-group label="Scaling Dimension" labelClass="col-sm-3"}}
+              <div class="col-sm-9">
+                {{input type="number" min=3
+                    value=model.analysis.params.scaling_dimension
+                    class="form-control"}}
+                <span class="help-text">Scaling graph data to point cloud in this dimension.</span>
+              </div>
+            {{/form-group}}
+
+            {{#form-group label="Searching Algorithm" labelClass="col-sm-3"}}
+              <div class="col-sm-9">
+                {{dropdown-selector
+                    options=options.searching_algorithms
+                    callbackParam='searching_algorithm'
+                    callbackAction=(action paramsChanged)
+                }}
+              </div>
+            {{/form-group}}
+
+            {{#form-group label="Maximum Iterations" labelClass="col-sm-3"}}
+              <div class="col-sm-9">
+                {{input type="numer" min="10"
+                    value=model.analysis.params.max_iterations
+                    class="form-control"}}
+                <span class="help-text">specifies the maximum number of iterations before it stops.</span>
+              </div>
+            {{/form-group}}
+
+          {{/if}}
+
+          <button type="submit" class="btn btn-success">Submit</button>
+        </form>
+      </div><!-- .card__content -->
+    </div><!-- .card -->
+</div><!-- .analysis-new -->

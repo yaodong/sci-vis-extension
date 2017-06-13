@@ -8,12 +8,8 @@ export default Ember.Route.extend({
     }
 
     const dataset = this.get('store').findRecord('dataset', params.dataset_id);
-    const analysis = this.get('store').createRecord('analysis', {dataset_id: params.dataset_id});
-
-    analysis.params = {
-      algorithm: 'downhill',
-      max_iterations: 50
-    };
+    const analysis = this.get('store').createRecord('analysis',
+                                                    {dataset_id: params.dataset_id, params: {}});
 
     return {
       dataset: dataset,
@@ -26,5 +22,13 @@ export default Ember.Route.extend({
     if (!model.dataset) {
       this.transitionTo('datasets');
     }
+  },
+
+  setupController(controller, model) {
+    this._super(controller, model);
+    model.dataset.then((d) => {
+      controller.set('title', 'Analysis of "' + d.get('name') + '"');
+    });
   }
+
 });

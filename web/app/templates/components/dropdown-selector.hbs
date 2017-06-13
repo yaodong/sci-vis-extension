@@ -1,0 +1,11 @@
+<div class="dropdown">
+  <button data-key="{{selectedKey}}" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+    {{selectedText}}
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+    {{#each options as |op|}}
+      <li onclick={{action "clicked" op.key op.text}} data-key="{{op.key}}"><a href="#">{{op.text}}</a></li>
+    {{/each}}
+  </ul>
+</div>

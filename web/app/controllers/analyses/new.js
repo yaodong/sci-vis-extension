@@ -4,14 +4,72 @@ export default Ember.Controller.extend({
   queryParams: ['dataset_id'],
   dataset_id: null,
 
+  title: null,
+
+  titleChanged: Ember.observer('title', function() {
+    this.set('model.analysis.title', this.get('title'));
+    console.log(this.get('model.analysis.title'));
+  }),
+
+  options: {
+    processes: [
+      {
+        key: 'sphere_evenly_sampling',
+        text: 'evenly distributed projection in 3d'
+      },
+      {
+        key: 'search_best_linear_projection',
+        text: 'search best linear projection'
+      }
+    ],
+    searching_algorithms: [
+      {
+        key: 'downhill',
+        text: 'downhill'
+      }
+    ]
+  },
+
+  processDefaults: {
+    sphere_evenly_sampling: [
+      ['sample_size', 200]
+    ],
+    search_best_linear_projection: [
+      ['max_iterations', 100]
+    ]
+  },
+
+  resetParams(processName) {
+    const defaults = this.get('processDefaults.' + processName);
+    defaults.forEach((i) => {
+      this.set('model.analysis.params.' + i[0], i[1]);
+    });
+  },
+
+  paramsChanged(key, text, paramKey) {
+    console.log({
+      message: 'analysis param changed',
+      paramKey: paramKey,
+      selectedKey: key,
+      selectedText: text});
+
+    if (paramKey == 'process') {
+      this.resetParams(key);
+    }
+
+    this.set('model.analysis.params.' + paramKey, key);
+  },
+
+
   actions: {
     submit() {
       const that = this;
       const analysis = this.get('model.analysis');
 
-      analysis.set('dataset', this.get('model.dataset'));
+      analysis.title = this.get('title');
+      //analysis.set('dataset', this.get('model.dataset'));
       analysis.save().then(() => {
-        that.transitionToRoute('analyses.view', analysis.id);
+        //that.transitionToRoute('analyses.view', analysis.id);
       });
     }
   }
