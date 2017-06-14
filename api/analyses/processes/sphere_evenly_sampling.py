@@ -67,9 +67,10 @@ class SphereEvenlySampling(Process):
 
     def create_samples(self):
         from analyses.utils.sphere_samples import sphere_random_directions
-        directions = sphere_random_directions(self.params.get('sample_size'))
+        size = self.params.get('sample_size')
+        directions = sphere_random_directions(size)
 
-        self.contexts.write('samples.size', len(directions))
+        self.contexts.write('samples.size', size)
 
         for index, direction in enumerate(directions):
             self.contexts.write('samples.fresh.%i' % index, direction)

@@ -1,9 +1,16 @@
-Title: {{model.title}}
-<br />
+<div class="analysis-view">
 
-params:
-{{model.params}}
+  <div class="card">
+    <div class="card__title">{{model.title}}</div>
+    <div class="card__content padding-md">
+      <ul class="attribute-list">
+        <li><span>dataset</span>{{#link-to "datasets.view" model.dataset.id}}{{model.dataset.name}}{{/link-to}}</li>
+      </ul>
+    </div>
+  </div>
 
-<br />
-status:
-{{model.createdAt}}
+  {{#if (eq model.params.process "sphere_evenly_sampling")}}
+    {{analysis-director-sphere-evenly updated=(action directorUpdated) analysis=model}}
+  {{/if}}
+
+</div>

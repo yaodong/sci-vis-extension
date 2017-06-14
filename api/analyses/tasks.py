@@ -4,7 +4,7 @@ from analyses.processes import sphere_evenly_sampling
 import logging
 
 PROCESS_CLASSES = {
-    'sphere_evenly_samping': sphere_evenly_sampling.SphereEvenlySampling
+    'sphere_evenly_sampling': sphere_evenly_sampling.SphereEvenlySampling
 }
 
 

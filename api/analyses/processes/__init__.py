@@ -19,7 +19,7 @@ class Process:
     def __init__(self, analysis):
         self.analysis = analysis
         self.contexts = self.analysis.contexts  # type: ContextHandler
-        self.parmas = self.analysis.params
+        self.params = self.analysis.params
         self.dataset = self.analysis.dataset
 
     def tick(self):
