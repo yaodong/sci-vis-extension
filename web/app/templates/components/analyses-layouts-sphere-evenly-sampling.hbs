@@ -1,0 +1,40 @@
+<div class="card">
+  <div class="card__content padding-md">
+    <div class="row">
+      <div class="col-sm-4">
+        {{image-box url=images.preview group="analysis-info" title="Preview (3D)"}}
+      </div>
+      <div class="col-sm-4">
+        {{image-box url=images.persistence group="analysis-info" title="Persistence Diagram"}}
+      </div>
+      <div class="col-sm-4">
+        {{image-box url=images.projection group="analysis-info" title="Best Projection"}}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="card">
+  <div class="card__content padding-md">
+    <div class="row">
+      <div class="col-sm-4">
+        Bottleneck distance: {{directionData.bottleneckDistance}}
+      </div>
+      <div class="col-sm-4">
+
+      </div>
+      <div class="col-sm-4">
+
+      </div>
+    </div>
+    <div class="row">
+      {{rotating-sphere data=sphereData directionChanged=(action "sphereDirectionChanged")}}
+      <small class="help-block">
+        1. Each diamond represents a direction of projection. Click it to inspect the result.<br/>
+        2. Drag the sphere to rotate.<br/>
+        3. The best direction is marked by a diamond with red border.
+      </small>
+    </div>
+  </div>
+</div>

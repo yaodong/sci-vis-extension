@@ -14,7 +14,7 @@ class QueryViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         return Response({
-            "type": "analyses",
+            "type": "queries",
             "id": pk,
             "attributes": {
                 "content": self.compose(pk)
@@ -34,7 +34,7 @@ class QueryViewSet(viewsets.ViewSet):
             return {'error': 'Invalid process type'}
 
         composer = composer_class(analysis)
-        func = getattr(composer, 'query_%s' % item, None)
+        func = getattr(composer, 'query_%s' % item.replace('-', '_'), None)
         if func:
             return func()
         else:

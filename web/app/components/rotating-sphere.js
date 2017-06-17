@@ -5,6 +5,8 @@ const $ = Ember.$;
 
 export default Ember.Component.extend({
 
+  data: null, // component param
+
   colorShades: 50,
 
   cmap: Ember.computed("colorShades", function() {
@@ -19,11 +21,18 @@ export default Ember.Component.extend({
 
     this._super(...arguments);
 
-    let results = this.get('results');
+    let data = this.get('data');
 
-    let bestDirectionIndex = this.get('results.best'),
-      worstDirectionIndex = this.get('results.worst'),
-      directions = this.get('results.directions'),
+    if (!data) {
+      return;
+    }
+
+    console.log(data);
+
+
+    let bestDirectionIndex = this.get('data.best'),
+      worstDirectionIndex = this.get('data.worst'),
+      directions = this.get('data.directions'),
       minDistance = directions[bestDirectionIndex]['distance'],
       maxDistance = directions[worstDirectionIndex]['distance'],
       range = maxDistance + 0.001 - minDistance,

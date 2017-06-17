@@ -10,7 +10,6 @@ export default Ember.Component.extend({
     this._super(...arguments);
     const store = this.get('store');
 
-
     this.query('xxx').then((q) => {
       console.log(q);
     });

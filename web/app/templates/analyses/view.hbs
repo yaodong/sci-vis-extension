@@ -9,8 +9,9 @@
     </div>
   </div>
 
+
   {{#if (eq model.params.process "sphere_evenly_sampling")}}
-    {{analysis-director-sphere-evenly updated=(action directorUpdated) analysis=model}}
+    {{analyses-layouts-sphere-evenly-sampling analysis=model}}
   {{/if}}
 
 </div>

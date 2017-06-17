@@ -23,8 +23,6 @@ export default Ember.Component.extend({
 
     this._super(...arguments);
 
-    let
-
     return ;
 
     let results = this.get('results');
