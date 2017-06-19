@@ -67,6 +67,7 @@ class SphereEvenlySampling(Process):
     def generate_random_directions(self):
         from analyses.utils.sphere_samples import sphere_random_directions
         size = self.params.get('sample_size')
+        self.contexts.write('samples.size', size)
         return sphere_random_directions(size)
 
     def convert_to_points(self):
@@ -108,9 +109,7 @@ class SphereEvenlySampling(Process):
                                           'projected_%i_points' % index)
         np.save(projected_points_file, protected_points)
 
-        self.make_projection_preview_image(protected_points,
-                                           self.work_dir,
-                                           index)
+        self.make_projection_preview_image(protected_points, index)
 
         # call r to generate diagram and calculate bottleneck distance
         scripts.r('projected_graph.r', self.work_dir, index, max_scale)

@@ -8,7 +8,7 @@ class SphereEvenlySampling:
     def query_test(self):
         return "test success"
 
-    def query_shpere_data(self):
+    def query_project_directions(self):
 
         sample_size_ct = Context.objects.filter(
             analysis=self.analysis,
@@ -28,8 +28,4 @@ class SphereEvenlySampling:
             except Context.DoesNotExist:
                 pass
 
-        return {
-            'best': min(directions.values(), key=lambda d: d['distance'])['index'],
-            'worst': max(directions.values(), key=lambda d: d['distance'])['index'],
-            'directions': directions
-        }
+        return directions

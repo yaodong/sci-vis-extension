@@ -9,6 +9,21 @@ export default Ember.Component.extend({
 
   colorShades: 50,
 
+  currentRotation: [0, -50, -30],
+
+  distanceType: 'bottleneck',
+
+  distanceTypeOptions: [
+    {
+      key: "bottleneck",
+      text: "Bottleneck"
+    },
+    {
+      key: "wasserstein",
+      text: "Wasserstein"
+    }
+  ],
+
   cmap: Ember.computed("colorShades", function() {
     return colorMap({
       colormap: "salinity",
@@ -17,28 +32,58 @@ export default Ember.Component.extend({
     });
   }),
 
+  bestDirectionIndex: Ember.computed("data", "distanceType", function() {
+    let data = this.get("data");
+    let typeKey = "distance_" + this.get("distanceType");
+
+    if (!data) { return ; }
+
+    let best = Object.values(data).reduce(function(a, b) {
+      if (!a) { return b; }
+      if (a[typeKey] < b[typeKey]) { return a; }
+      return b;
+    });
+
+    return best["index"];
+  }),
+
+  worstDirectionIndex: Ember.computed("data", "distanceType", function() {
+    let data = this.get("data");
+    let typeKey = "distance_" + this.get("distanceType");
+
+    if (!data) { return ; }
+
+    let worst = Object.values(data).reduce(function(a, b) {
+      if (!a) { return b; }
+      if (a[typeKey] > b[typeKey]) { return a; }
+      return b;
+    });
+
+    return worst["index"];
+  }),
+
   didRender() {
-
     this._super(...arguments);
-
     let data = this.get('data');
 
-    if (!data) {
-      return;
+    if (data) {
+      this.renderSphere();
     }
+  },
 
-    console.log(data);
+  renderSphere() {
+    let bestDirectionIndex = this.get("bestDirectionIndex");
+    let worstDirectionIndex = this.get("worstDirectionIndex");
+    let distanceKey = "distance_" + this.get("distanceType");
 
-
-    let bestDirectionIndex = this.get('data.best'),
-      worstDirectionIndex = this.get('data.worst'),
-      directions = this.get('data.directions'),
-      minDistance = directions[bestDirectionIndex]['distance'],
-      maxDistance = directions[worstDirectionIndex]['distance'],
+    let directions = this.get('data'),
+      minDistance = directions[bestDirectionIndex][distanceKey],
+      maxDistance = directions[worstDirectionIndex][distanceKey],
       range = maxDistance + 0.001 - minDistance,
       width = 500,
       height = 500,
-      versor = this.versor();
+        versor = this.versor();
+
 
     let svg = d3.select("svg")
       .attr("width", width)
@@ -46,7 +91,7 @@ export default Ember.Component.extend({
 
     let geo = d3.geoOrthographic()
       .scale(240)
-      .rotate([0, -50, -30])
+      .rotate(this.get("currentRotation"))
       .translate([width / 2, height / 2])
       .clipAngle(90 + 1e-6)
       .precision(0.5);
@@ -95,7 +140,8 @@ export default Ember.Component.extend({
         stroke = "red";
       }
 
-      let colorIndex = parseInt((1 - (d['distance'] - minDistance) / range) * (shades - 1));
+      let colorIndex = parseInt((1 - (d[distanceKey] - minDistance) / range) * (shades - 1));
+
       let color = cmap[colorIndex];
 
       svg.append("path")
@@ -106,7 +152,7 @@ export default Ember.Component.extend({
         .attr("data-index", d['index'])
         .attr("data-latitude", d['latitude'])
         .attr("data-longitude", d['longitude'])
-        .attr("data-distance", d['distance'])
+        .attr("data-distance", d[distanceKey])
         .attr("class", "circle")
         .attr("d", path)
         .on("click", onClickOfCircle);
@@ -127,12 +173,16 @@ export default Ember.Component.extend({
       q0 = versor(r0);
     }
 
+    const that = this;
+
     function dragged() {
       let v1 = versor.cartesian(geo.rotate(r0).invert(d3.mouse(this))),
         q1 = versor.multiply(q0, versor.delta(v0, v1)),
         r1 = versor.rotation(q1);
       geo.rotate(r1);
       svg.selectAll("path").attr("d", path);
+
+      that.set('currentRotation', r1);
     }
 
     // function zoomed() {
@@ -227,8 +277,19 @@ export default Ember.Component.extend({
     }
 
     return versor;
+  },
+
+  actions: {
+    distanceTypeChanged(key) {
+      const button = Ember.$(event.target);
+      button.siblings().removeClass("btn-primary").addClass("btn-default");
+      button.addClass("btn-primary").removeClass("btn-default");
+
+      this.set("distanceType", key);
+      this.renderSphere();
+    }
+
   }
-  ,
 
 })
 ;

@@ -17,14 +17,14 @@ export default Ember.Component.extend({
     return {
       preview: imageBaseUrl + "/base_preview.gif",
       persistence: null,
-      projection: null,
-    }
+      projection: null
+    };
   }),
 
   sphereData: null,
 
   refreshSphereData() {
-    this.get('store').findRecord('query', `${this.get('analysis.id')}--shpere-data`).then((q) => {
+    this.get('store').findRecord('query', `${this.get('analysis.id')}--project-directions`).then((q) => {
       this.set('sphereData', q.get('content'));
     });
   },
@@ -37,7 +37,7 @@ export default Ember.Component.extend({
         index: index,
         longitude: longitude,
         latitude: latitude,
-        distance: distance,
+        distance: distance
       });
     }
   }
