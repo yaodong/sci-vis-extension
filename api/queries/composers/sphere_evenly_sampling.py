@@ -22,7 +22,7 @@ class SphereEvenlySampling:
             try:
                 result_ct = Context.objects.filter(
                     analysis=self.analysis,
-                    name='samples.result.%i' % i
+                    name='projected.result.%i' % i
                 ).get()
                 directions[result_ct.value['index']] = result_ct.value
             except Context.DoesNotExist:

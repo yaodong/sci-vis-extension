@@ -13,29 +13,24 @@ class Process:
     params = {}
     dataset = None
 
+    work_dir = None
+
     class HasFinished(RuntimeError):
         pass
 
     def __init__(self, analysis):
+
+        # assign objects
         self.analysis = analysis
         self.contexts = self.analysis.contexts  # type: ContextHandler
         self.params = self.analysis.params
         self.dataset = self.analysis.dataset
 
-    def tick(self):
-        current_state = self.contexts.read('state', None)
+        # preparing workspace
+        self.remove_contexts()
+        self.download_dataset()
 
-        logging.info('process tick %i:%s' % (self.analysis.id, current_state))
-
-        if current_state is None:
-            self.download_dataset()
-            self.contexts.write('state', self.STATE_READY)
-        else:
-            handle_func = getattr(self, 'when_%s' % current_state)
-            handle_func()
-
-    def when_ready(self):
-        pass
+        logging.info('analysis init %i' % self.analysis.id)
 
     def download_dataset(self):
         from django.conf import settings
@@ -47,8 +42,11 @@ class Process:
         logging.info('prepare work dir')
         work_dir = path.join(settings.DATA_DIR,
                              'analyses', str(self.analysis.id))
+        self.work_dir = work_dir
+
         if path.isdir(work_dir):
             rmtree(work_dir)
+
         makedirs(work_dir)
 
         # file provider urls
@@ -71,3 +69,6 @@ class Process:
         # save contexts
         self.contexts.write('path.work_dir', work_dir)
         self.contexts.write('path.dataset_file', local_file_path)
+
+    def remove_contexts(self):
+        self.analysis.contexts.remove_all()

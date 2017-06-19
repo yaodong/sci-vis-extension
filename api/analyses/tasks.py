@@ -18,8 +18,4 @@ def analysis_process(instance_id):
     process_class = PROCESS_CLASSES[params['process']]
 
     process = process_class(analysis)
-    try:
-        while True:
-            process.tick()
-    except process.HasFinished:
-        logging.info('analysis finished')
+    process.run()
