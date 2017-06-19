@@ -17,17 +17,28 @@
 
 <div class="card">
   <div class="card__content padding-md">
-    <div class="row">
-      <div class="col-sm-4">
-        Bottleneck distance: {{directionData.bottleneckDistance}}
+    {{#if directionData}}
+      <div class="row">
+        <div class="col-sm-4">
+          <ul class="attribute-list">
+            <li><span>Bottleneck distance</span>{{directionData.bottleneckDistance}}</li>
+            <li><span>Longitude</span>{{directionData.longitude}}</li>
+            <li><span>Latitude</span>{{directionData.latitude}}</li>
+          </ul>
+        </div>
+        <div class="col-sm-4">
+          {{image-box url=images.preview group="direction-info" title="Preview (3D)"}}
+        </div>
+        <div class="col-sm-4">
+          {{image-box url=images.preview group="direction-info" title="Preview (3D)"}}
+        </div>
       </div>
-      <div class="col-sm-4">
 
-      </div>
-      <div class="col-sm-4">
+      <hr/>
+    {{else}}
+      <div class="alert alert-info">Select a direction to view projection detail.</div>
+    {{/if}}
 
-      </div>
-    </div>
     <div class="row">
       {{rotating-sphere data=sphereData directionChanged=(action "sphereDirectionChanged")}}
       <small class="help-block">

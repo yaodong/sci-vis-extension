@@ -7,7 +7,7 @@ import re
 
 class QueryViewSet(viewsets.ViewSet):
 
-    key_name_test = re.compile('^([0-9]+)::([a-z0-9][a-z0-9-]+[a-z0-9])$')
+    key_name_test = re.compile('^([0-9]+)--([a-z0-9][a-z0-9-]+[a-z0-9])$')
 
     def list(self, request):
         return Response([])

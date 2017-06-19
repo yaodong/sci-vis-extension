@@ -24,20 +24,21 @@ export default Ember.Component.extend({
   sphereData: null,
 
   refreshSphereData() {
-    this.get('store').findRecord('query', `${this.get('analysis.id')}::shpere-data`).then((q) => {
+    this.get('store').findRecord('query', `${this.get('analysis.id')}--shpere-data`).then((q) => {
       this.set('sphereData', q.get('content'));
     });
   },
 
-
-  directionData: {},
+  directionData: null,
 
   actions: {
     sphereDirectionChanged(index, longitude, latitude, distance) {
-      this.set("directionData.index", index);
-      this.set("directionData.longitude", longitude);
-      this.set("directionData.latitude", latitude);
-      this.set("directionData.distance", distance);
+      this.set('directionData', {
+        index: index,
+        longitude: longitude,
+        latitude: latitude,
+        distance: distance,
+      });
     }
   }
 
