@@ -39,13 +39,11 @@
       <div class="alert alert-info">Select a direction to view projection detail.</div>
     {{/if}}
 
-    <div class="row">
-      {{rotating-sphere data=sphereData directionChanged=(action "sphereDirectionChanged")}}
-      <small class="help-block">
-        1. Each diamond represents a direction of projection. Click it to inspect the result.<br/>
-        2. Drag the sphere to rotate.<br/>
-        3. The best direction is marked by a diamond with red border.
-      </small>
-    </div>
+    {{rotating-sphere data=sphereData directionChanged=(action "sphereDirectionChanged")}}
+    <small class="help-block">
+      1. Each diamond represents a direction of projection. Click it to inspect the result.<br/>
+      2. Drag the sphere to rotate.<br/>
+      3. The best direction is marked by a diamond with red border.
+    </small>
   </div>
 </div>
