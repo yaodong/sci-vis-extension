@@ -8,7 +8,6 @@ export default Ember.Controller.extend({
 
   titleChanged: Ember.observer('title', function() {
     this.set('model.analysis.title', this.get('title'));
-    console.log(this.get('model.analysis.title'));
   }),
 
   options: {
@@ -17,10 +16,10 @@ export default Ember.Controller.extend({
         key: 'sphere_evenly_sampling',
         text: 'evenly distributed projection in 3d'
       },
-      {
-        key: 'search_best_linear_projection',
-        text: 'search best linear projection'
-      }
+      //{
+      //  key: 'search_best_linear_projection',
+      //  text: 'search best linear projection'
+      //}
     ],
     searching_algorithms: [
       {
@@ -48,12 +47,6 @@ export default Ember.Controller.extend({
   },
 
   paramsChanged(key, text, paramKey) {
-    console.log({
-      message: 'analysis param changed',
-      paramKey: paramKey,
-      selectedKey: key,
-      selectedText: text});
-
     if (paramKey == 'process') {
       this.resetParams(key);
     }
