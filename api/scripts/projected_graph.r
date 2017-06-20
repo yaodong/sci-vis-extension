@@ -3,11 +3,11 @@
 args = commandArgs(trailingOnly=TRUE)
 work_dir = args[1]
 index = args[2]
+maxscale = as.integer(args[3])
 
 library(TDA)
 library(RcppCNPy)
 
-maxscale <- 5
 maxdimension <- 1
 
 setwd(work_dir)
@@ -28,6 +28,9 @@ base_diagram_table = read.table("base_diagram.table", header=TRUE, sep=",")
 base_diagram = cbind(base_diagram_table[,1], base_diagram_table[,2], base_diagram_table[,3])
 
 bottleneckDist <- bottleneck(base_diagram, diagram[["diagram"]], dimension = 1)
-distance_file = paste("projected", index, "distance.txt", sep="_")
+wassersteinDist <- wasserstein(base_diagram, diagram[["diagram"]], dimension = 1)
 
-write(bottleneckDist, file = distance_file)
+results <- list(bottleneck = bottleneckDist, wasserstein = wassersteinDist)
+result_file = paste("projected", index, "results.csv", sep="_")
+
+write.csv(results, file = result_file)

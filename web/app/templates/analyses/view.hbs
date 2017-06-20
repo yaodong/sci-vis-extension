@@ -1,0 +1,17 @@
+<div class="analysis-view">
+
+  <div class="card">
+    <div class="card__title">{{model.title}}</div>
+    <div class="card__content padding-md">
+      <ul class="attribute-list">
+        <li><span>dataset</span>{{#link-to "datasets.view" model.dataset.id}}{{model.dataset.name}}{{/link-to}}</li>
+      </ul>
+    </div>
+  </div>
+
+
+  {{#if (eq model.params.process "sphere_evenly_sampling")}}
+    {{analyses-layouts-sphere-evenly-sampling analysis=model}}
+  {{/if}}
+
+</div>
