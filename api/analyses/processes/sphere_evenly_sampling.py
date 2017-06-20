@@ -22,8 +22,8 @@ class SphereEvenlySampling(Process):
     def __init__(self, analysis):
         super().__init__(analysis)
 
-        self.points = self.convert_to_points()
         self.dataset_is_graph = (self.analysis.dataset.format == 'graph')
+        self.points = self.convert_to_points()
 
         if self.dataset_is_graph:
             self.base_graph = self.read_base_graph()
@@ -66,7 +66,7 @@ class SphereEvenlySampling(Process):
 
     def generate_random_directions(self):
         from analyses.utils.sphere_samples import sphere_random_directions
-        size = self.params.get('sample_size')
+        size = int(self.params.get('sample_size'))
         self.contexts.write('samples.size', size)
         return sphere_random_directions(size)
 
@@ -89,12 +89,10 @@ class SphereEvenlySampling(Process):
             )
         else:
             points = np.genfromtxt(dataset_path, delimiter=',')
-            np.save(points_path, points)
 
+        np.save(points_path, points)
         points_path += '.npy'
-
         self.contexts.write('path.points_file', points_path)
-
         return points
 
     def compute_sample(self, index, longitude, latitude, max_scale):

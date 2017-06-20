@@ -14,50 +14,55 @@
   </div>
 </div>
 
+{{#if sphereData}}
+  <div class="card">
+    <div class="card__content padding-md">
 
-<div class="card">
-  <div class="card__content padding-md">
+      {{#if (not currentDirectionData)}}
+        <div class="alert alert-info">Select a direction to view projection detail below.</div>
+      {{/if}}
 
-    {{#if (not currentDirectionData)}}
-      <div class="alert alert-info">Select a direction to view projection detail below.</div>
-    {{/if}}
-
-    {{rotating-sphere data=sphereData directionChanged=(action "sphereDirectionChanged")}}
-    <small class="help-block">
-      1. Each diamond represents a direction of projection. Click it to inspect the result.<br/>
-      2. Drag the sphere to rotate.<br/>
-      3. The best direction is marked by a diamond with red border.
-    </small>
-
-    <hr />
-
-    {{#if currentDirectionData}}
-      <div class="row">
-        <div class="col-sm-4">
-          <span></span>
-          <ul class="attribute-list">
-            <li><span>Distance</span>{{currentDirectionData.distance}}</li>
-            <li><span>Longitude</span>{{currentDirectionData.longitude}}</li>
-            <li><span>Latitude</span>{{currentDirectionData.latitude}}</li>
-          </ul>
-        </div>
-      </div>
+      {{rotating-sphere data=sphereData directionChanged=(action "sphereDirectionChanged")}}
+      <small class="help-block">
+        1. Each diamond represents a direction of projection. Click it to inspect the result.<br/>
+        2. Drag the sphere to rotate.<br/>
+        3. The best direction is marked by a diamond with red border.
+      </small>
 
       <hr />
 
-      <div class="row">
-        <div class="col-sm-4">
-          {{image-box url=projectedImages.diagram group="direction-info" title="Persistence Diagram"}}
+      {{#if currentDirectionData}}
+        <div class="row">
+          <div class="col-sm-4">
+            <span></span>
+            <ul class="attribute-list">
+              <li><span>Distance</span>{{currentDirectionData.distance}}</li>
+              <li><span>Longitude</span>{{currentDirectionData.longitude}}</li>
+              <li><span>Latitude</span>{{currentDirectionData.latitude}}</li>
+            </ul>
+          </div>
         </div>
-        <div class="col-sm-4">
-          {{image-box url=projectedImages.dots group="direction-info" title="Projected Points"}}
+
+        <hr />
+
+        <div class="row">
+          <div class="col-sm-4">
+            {{image-box url=projectedImages.diagram group="direction-info" title="Persistence Diagram"}}
+          </div>
+          <div class="col-sm-4">
+            {{image-box url=projectedImages.dots group="direction-info" title="Projected Points"}}
+          </div>
+          <div class="col-sm-4">
+            {{image-box url=projectedImages.graph group="direction-info" title="Projected Graph"}}
+          </div>
         </div>
-        <div class="col-sm-4">
-          {{image-box url=projectedImages.graph group="direction-info" title="Projected Graph"}}
-        </div>
-      </div>
-    {{/if}}
+      {{/if}}
 
 
+    </div>
   </div>
-</div>
+{{else}}
+  <div class="card">
+    <div class="card__content padding-md">still running</div>
+  </div>
+{{/if}}

@@ -1,4 +1,4 @@
-from analyses.models import Analysis, Context
+from analyses.models import Context
 
 
 class SphereEvenlySampling:
@@ -10,11 +10,14 @@ class SphereEvenlySampling:
 
     def query_project_directions(self):
 
-        sample_size_ct = Context.objects.filter(
-            analysis=self.analysis,
-            name='samples.size').get()
+        try:
+            sample_size_ct = Context.objects.filter(
+                analysis=self.analysis,
+                name='samples.size').get()
+        except Context.DoesNotExists:
+            return None
 
-        sample_size = sample_size_ct.value
+        sample_size = int(sample_size_ct.value)
 
         directions = {}
         for i in range(0, sample_size):
@@ -28,4 +31,7 @@ class SphereEvenlySampling:
             except Context.DoesNotExist:
                 pass
 
-        return directions
+        if directions:
+            return directions
+        else:
+            return None
