@@ -12,13 +12,34 @@ export default Ember.Component.extend({
 
   analysis: null,
 
-  images: Ember.computed("analysis", function () {
-    let imageBaseUrl = Config.APP.API_HOST + "/static/analyses/" + this.get("analysis.id");
+  imageBaseUrl: Ember.computed("analysis", function () {
+    return Config.APP.API_HOST + "/static/analyses/" + this.get("analysis.id");
+  }),
+
+  images: Ember.computed("analysis", "imageBaseUrl", function () {
     return {
-      preview: imageBaseUrl + "/base_preview.gif",
+      preview: this.get("imageBaseUrl") + "/base_preview.gif",
       persistence: null,
       projection: null
     };
+  }),
+
+  projectedImages: Ember.computed("currentDirectionData", "imageBaseUrl", function () {
+    const index = this.get("currentDirectionData.index");
+    const imageUrl = this.get("imageBaseUrl") + "/projected_" + index + "_";
+
+    let images = {
+      dots: imageUrl + "preview_dots.png",
+      diagram: imageUrl + "diagram.png"
+    };
+
+    if (this.get('analysis.dataset.format') == 'graph') {
+      images.graph = imageUrl + "preview_graph.png";
+    } else {
+      images.graph = null;
+    }
+
+    return images;
   }),
 
   sphereData: null,
@@ -29,11 +50,11 @@ export default Ember.Component.extend({
     });
   },
 
-  directionData: null,
+  currentDirectionData: null,
 
   actions: {
     sphereDirectionChanged(index, longitude, latitude, distance) {
-      this.set('directionData', {
+      this.set('currentDirectionData', {
         index: index,
         longitude: longitude,
         latitude: latitude,
