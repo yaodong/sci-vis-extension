@@ -20,12 +20,15 @@ from rest_framework import routers
 from users import views as users_views
 from datasets import views as datasets_views
 from analyses import views as analyses_views
+from queries import views as queries_views
+
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'users', users_views.UserViewSet)
 router.register(r'groups', users_views.GroupViewSet)
 router.register(r'datasets', datasets_views.DatasetViewSet)
 router.register(r'analyses', analyses_views.AnalysisViewSet)
+router.register(r'queries', queries_views.QueryViewSet, base_name='queries')
 
 urlpatterns = [
     url(r'^api/', include(router.urls)),

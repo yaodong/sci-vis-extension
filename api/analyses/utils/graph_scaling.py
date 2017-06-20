@@ -9,8 +9,7 @@ def graph_scaling(graph_file, points_file, method, dimension):
 
     base_graph = graph_load(graph_file)
     matrix = graph_distance_matrix(base_graph)
-    points = multidimensional_scaling(matrix, dimension)
-    np.save(points_file, points)
+    return multidimensional_scaling(matrix, dimension)
 
 
 def multidimensional_scaling(distance_matrix, dimensional=3, max_iter=3000):

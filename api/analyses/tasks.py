@@ -4,7 +4,7 @@ from analyses.processes import sphere_evenly_sampling
 import logging
 
 PROCESS_CLASSES = {
-    'sphere_evenly_samping': sphere_evenly_sampling.SphereEvenlySampling
+    'sphere_evenly_sampling': sphere_evenly_sampling.SphereEvenlySampling
 }
 
 
@@ -18,8 +18,4 @@ def analysis_process(instance_id):
     process_class = PROCESS_CLASSES[params['process']]
 
     process = process_class(analysis)
-    try:
-        while True:
-            process.tick()
-    except process.HasFinished:
-        logging.info('analysis finished')
+    process.run()

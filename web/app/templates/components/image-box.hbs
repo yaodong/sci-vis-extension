@@ -1,4 +1,15 @@
-{{light-box href=url
-    data-lightbox=group
-    data-title=title
-    data-class=className}}
+<div class="image-box">
+  <div class="image-box__title">
+    {{title}}
+  </div>
+  <div class="image-box__image">
+    {{#if url}}
+      {{light-box href=url
+                  data-lightbox=group
+                  data-title=title
+                  data-class=className}}
+    {{else}}
+      unavailable
+    {{/if}}
+  </div>
+</div>

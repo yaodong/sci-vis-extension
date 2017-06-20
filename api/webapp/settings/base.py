@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'corsheaders',
     'datasets',
-    'analyses'
+    'analyses',
+    'queries',
 ]
 
 MIDDLEWARE = [

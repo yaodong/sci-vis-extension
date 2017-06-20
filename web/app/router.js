@@ -14,6 +14,7 @@ Router.map(function() {
   this.route('home', { path: '/'});
   this.route('datasets', function() {
     this.route('new');
+    this.route('view', { path: '/:id' });
   });
 
   this.route('analyses', function() {
