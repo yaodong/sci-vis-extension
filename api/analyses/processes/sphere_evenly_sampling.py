@@ -34,6 +34,8 @@ class SphereEvenlySampling(Process):
         self.make_base_preview_image()
         self.run_base_r()
 
+        self.contexts.write("preview.is_ready", True)
+
         max_scale = self.compute_r_max_scale()
         directions = self.generate_random_directions()
 

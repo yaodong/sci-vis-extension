@@ -35,3 +35,13 @@ class SphereEvenlySampling:
             return directions
         else:
             return None
+
+    def query_preview_data(self):
+
+        try:
+            preview_status = Context.objects.filter(
+                analysis=self.analysis,
+                name="preview.is_ready").get()
+            return bool(preview_status.value)
+        except Context.DoesNotExist:
+            return False

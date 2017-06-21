@@ -8,21 +8,35 @@ export default Ember.Component.extend({
   init() {
     this._super(...arguments);
     this.refreshSphereData();
+    this.fetchPreviewData();
   },
 
   analysis: null,
+
+  sphereData: null,
+
+  previewIsReady: null,
 
   imageBaseUrl: Ember.computed("analysis", function () {
     return Config.APP.API_HOST + "/static/analyses/" + this.get("analysis.id");
   }),
 
-  images: Ember.computed("analysis", "imageBaseUrl", function () {
-    return {
-      preview: this.get("imageBaseUrl") + "/base_preview.gif",
-      persistence: null,
-      projection: null
-    };
+  images: Ember.computed("previewIsReady", "analysis", "imageBaseUrl", function () {
+    if (this.get("previewIsReady")) {
+      return {
+        preview: this.get("imageBaseUrl") + "/base_preview.gif",
+        persistence: this.get("imageBaseUrl") + '/base_diagram.png'
+      };
+    } else {
+      return {preview: null, persistence: null};
+    }
   }),
+
+  fetchPreviewData() {
+    this.get('store').findRecord('query', `${this.get('analysis.id')}--preview-data`).then((q) => {
+      this.set('previewIsReady', q.get('content'));
+    });
+  },
 
   projectedImages: Ember.computed("currentDirectionData", "imageBaseUrl", function () {
     const index = this.get("currentDirectionData.index");
@@ -41,8 +55,6 @@ export default Ember.Component.extend({
 
     return images;
   }),
-
-  sphereData: null,
 
   refreshSphereData() {
     this.get('store').findRecord('query', `${this.get('analysis.id')}--project-directions`).then((q) => {
