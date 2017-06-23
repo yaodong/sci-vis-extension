@@ -22,3 +22,12 @@ class AnalysisViewSet(viewsets.ModelViewSet):
         print('=' * 20)
 
         return super().create(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = Analysis.objects.all()
+
+        dataset_id = self.request.query_params.get('dataset', None)
+        if dataset_id is not None:
+            queryset = queryset.filter(dataset_id=dataset_id)
+
+        return queryset

@@ -8,3 +8,16 @@
     </ul>
   </div>
 </div>
+
+{{#if relatedAnalyses}}
+  <div class="card">
+    <div class="card__title">Related Analyses</div>
+    <div class="card_content padding-md">
+      <ul>
+      {{#each relatedAnalyses as |analysis|}}
+        <li>{{#link-to "analyses.view" analysis.id}}{{analysis.title}}{{/link-to}}</li>
+      {{/each}}
+      </ul>
+    </div>
+  </div>
+{{/if}}
