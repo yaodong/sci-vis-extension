@@ -14,7 +14,7 @@ class SphereEvenlySampling:
             sample_size_ct = Context.objects.filter(
                 analysis=self.analysis,
                 name='samples.size').get()
-        except Context.DoesNotExists:
+        except Context.DoesNotExist:
             return None
 
         sample_size = int(sample_size_ct.value)

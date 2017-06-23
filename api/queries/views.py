@@ -14,11 +14,8 @@ class QueryViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         return Response({
-            "type": "queries",
             "id": pk,
-            "attributes": {
-                "content": self.compose(pk)
-            }})
+            "content": self.compose(pk)})
 
     def compose(self, pk):
         matches = self.key_name_test.match(pk)
