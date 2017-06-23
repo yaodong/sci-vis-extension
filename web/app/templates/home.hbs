@@ -1,1 +1,15 @@
-home
+<div class="card">
+  <div class="card__title">Recent Analysis</div>
+  <div class="card__content">
+    <div class="analysis-index">
+      {{#each model.analyses as |analysis|}}
+        <div class="analysis-index__item">
+          <div class="analysis-index__item-title">
+            {{#link-to "analyses.view" analysis.id}}{{analysis.title}}{{/link-to}}
+          </div>
+          <div class="analysis-index__item-info"></div>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+</div>

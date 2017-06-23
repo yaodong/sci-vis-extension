@@ -1,7 +1,5 @@
-import DS from 'ember-data';
-import ENV from 'webapp/config/environment';
+import DRFAdapter from './drf';
 
-export default DS.JSONAPIAdapter.extend({
-  host: ENV.APP.API_HOST,
-  namespace: 'api'
+export default DRFAdapter.extend({
+  addTrailingSlashes: false
 });

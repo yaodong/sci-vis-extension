@@ -34,18 +34,13 @@ body {
   max-width: 750px;
 }
 
-@import "components/card";
-@import "components/spacing";
-@import "components/stage";
-@import "components/jobs";
+@import "analyses";
+@import "datasets";
+@import "shared";
+
 @import "components/rotating-sphere";
-@import "components/widget";
 @import "components/result-detail";
 @import "components/preview-detail";
 @import "components/colorbar";
-@import "components/job-info";
 @import "components/inspector";
-@import "components/datasets";
-@import "components/analyses";
-@import "components/attribute-list";
 @import "components/image-box";
