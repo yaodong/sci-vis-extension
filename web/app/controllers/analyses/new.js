@@ -16,10 +16,10 @@ export default Ember.Controller.extend({
         key: 'sphere_evenly_sampling',
         text: 'evenly distributed projection in 3d'
       },
-      //{
-      //  key: 'search_best_linear_projection',
-      //  text: 'search best linear projection'
-      //}
+      {
+       key: 'search_best_linear_projection',
+       text: 'search best linear projection'
+      }
     ],
     searching_algorithms: [
       {

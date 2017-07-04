@@ -22,7 +22,6 @@ def dispatch_computing(analysis_id):
     work_dir = task_prepare_dir(analysis.id)
     data_file_path = path.join(work_dir, 'base.dat')
 
-
     task_download_dataset(job.param('file'), data_file_path)
 
     data_format = job.param('data_format')
