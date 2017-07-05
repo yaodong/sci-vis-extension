@@ -79,11 +79,12 @@ class BestLinearProjection(Process):
 
             return distance
 
-        # minimize(objective_func, guess, method='Nelder-Mead',
-        #          options={'xatol': 1, 'fatol': 0.0001})
+        #minimize(objective_func, guess, method='Nelder-Mead')
+
+        step_size = 5 * pow(1.5, self.graph_scaling_dimentions - 3)
 
         from scipy.optimize import basinhopping
-        basinhopping(objective_func, guess, stepsize=10)
+        basinhopping(objective_func, guess, stepsize=step_size)
 
     def process_base_graph(self):
         scripts.r('base_graph.r', self.work_dir)
