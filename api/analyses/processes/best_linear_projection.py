@@ -1,7 +1,11 @@
 from analyses.processes import Process
 from scipy.optimize import minimize
-from random import random
+from random import random, randint
+from os import path
+from copy import deepcopy
 import numpy as np
+import logging
+from analyses.utils import scripts
 
 
 class BestLinearProjection(Process):
@@ -23,46 +27,85 @@ class BestLinearProjection(Process):
             dimension=self.graph_scaling_dimentions)
 
         # random pick a basis
-        v1 = [random() for _ in range(0, self.graph_scaling_dimentions)]
-        v2 = [random() for _ in range(0, self.graph_scaling_dimentions)]
+        v1 = self.make_random_vec()
+        v2 = self.make_random_vec()
 
-        self.current_b1, self.current_b2 = self.make_unit_basis_vec(v1, v2)
+        self.state_b1, self.state_b2 = self.make_unit_basis_vec(v1, v2)
 
     def run(self):
 
-        guess = self.make_unit_vec([random() for _ in range(0, self.graph_scaling_dimentions)])
+        self.process_base_graph()
+        self.tda_max_scale = self.compute_r_max_scale()
 
-        def objective_func(guess, *args):
-            process = args[0]
+        guess = self.make_unit_vec(self.make_random_vec())
+
+        process = self
+
+        def objective_func(guess):
+
+            print('=== norm / ====')
+            print(np.linalg.norm(process.state_b1))
+            print(np.linalg.norm(process.state_b2))
+            print('=== norm \ ====')
 
             process.iteration += 1
+
+            logging.info('iteration %i' % process.iteration)
+            logging.info('guess %s' % guess)
 
             last_b1 = process.state_b1
             last_b2 = process.state_b2
 
-            current_b1 = last_b1 - process.ortho_projection(last_b1, guess)
-            current_b2 = last_b2 - process.ortho_projection(last_b2, guess)
+            proj_b1 = last_b1 - process.ortho_projection(last_b1, guess)[1]
+            proj_b2 = last_b2 - process.ortho_projection(last_b2, guess)[1]
 
-            matrix = process.make_projection_matrix(current_b1, current_b2)
+            b1, b2 = process.make_unit_basis_vec(proj_b1, proj_b2)
+
+            matrix = process.make_projection_matrix(b1, b2)
 
             plane_points = []
-            for point in process.points:
-                point_hat = process.project_on_matrix(matrix, point)
-                x = process.ortho_projection(point_hat, current_b1)[0]
-                y = process.ortho_projection(point_hat, current_b2)[0]
+            for p in process.points:
+                point = deepcopy(p)
+                point_hat = process.project_on_matrix(point, matrix)
+                x = process.ortho_projection(point_hat, b1)[0]
+                y = process.ortho_projection(point_hat, b2)[0]
                 plane_points.append((x, y))
 
             distance = process.calculate_distance(plane_points)
 
             # set states
-            process.state_b1 = current_b1
-            process.state_b2 = current_b2
+            process.state_b1 = b1
+            process.state_b2 = b2
 
             return distance
 
-        minimize(fun=objective_func, x0=guess, method='Nelder-Mead', args=(self,))
+        # minimize(objective_func, guess, method='Nelder-Mead',
+        #          options={'xatol': 1, 'fatol': 0.0001})
 
+        from scipy.optimize import basinhopping
+        basinhopping(objective_func, guess, stepsize=10)
 
+    def process_base_graph(self):
+        scripts.r('base_graph.r', self.work_dir)
+
+    def compute_r_max_scale(self):
+        base_diagram_file = path.join(self.work_dir, 'base_diagram.table')
+        data_types = [('index', '|S5'), ('dimension', np.intp),
+                      ('birth', np.float), ('death', np.float)]
+        diagram_data = np.genfromtxt(base_diagram_file,
+                                     delimiter=',',
+                                     dtype=data_types,
+                                     skip_header=1)
+
+        max_scale = max([i for i in diagram_data['death'] if i != np.inf])
+        max_scale = int(np.ceil(max_scale))
+
+        self.contexts.write('scripts.projected_graph.max_scale', max_scale)
+
+        return max_scale
+
+    def make_random_vec(self):
+        return [randint(-10000, 10000) for _ in range(0, self.graph_scaling_dimentions)]
 
     @staticmethod
     def make_unit_vec(u):
@@ -112,4 +155,52 @@ class BestLinearProjection(Process):
         return np.dot(matrix, x)
 
     def calculate_distance(self, points):
-        return random()
+        index = self.iteration
+
+        # save points
+        projected_points_file = path.join(self.work_dir,
+                                          'projected_%i_points' % index)
+        np.save(projected_points_file, points)
+
+        self.make_projection_preview_image(points, index)
+
+        # call R to generate diagram and calculate bottleneck distance
+        scripts.r('projected_graph.r', self.work_dir, index, self.tda_max_scale)
+
+        result_file = path.join(self.work_dir, 'projected_%i_results.csv' % index)
+
+        import csv
+        bottleneck = None
+        wasserstein = None
+        with open(result_file, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                bottleneck = float(row['bottleneck'])
+                wasserstein = float(row['wasserstein'])
+                break
+
+        distance = bottleneck
+
+        self.contexts.write('projected.result.%i' % index, distance)
+
+        logging.info('distance %s' % distance)
+        return distance
+
+    def make_projection_preview_image(self, coordinates, index):
+        name_format = 'projected_%s_preview_dots.png'
+        image_path = path.join(self.work_dir, name_format % index)
+
+        from matplotlib import pyplot as plt
+
+        fig = plt.figure(figsize=(5, 5))
+        ax = fig.add_subplot(111)
+
+        for x, y in coordinates:
+            ax.scatter(x, y, s=4, c="#4e8bae", zorder=2, edgecolors='k', linewidths=0.5)
+
+        #ax.xaxis.set_visible(False)
+        #ax.yaxis.set_visible(False)
+
+        plt.savefig(image_path, dpi=600)
+
+        plt.close()

@@ -9,11 +9,12 @@ setwd(work_dir)
 library(TDA)
 library(RcppCNPy)
 
+maxdimension <- 1
 
 points_file = "base_points.npy"
 points = npyLoad(points_file)
 
-diagram = alphaShapeDiag(points)
+diagram = ripsDiag(points, dist="euclidean", maxdimension, maxscale <- 50, library = "GUDHI")
 
 png(file='base_diagram.png', width=1024, height=1024, res=200, units="px")
 

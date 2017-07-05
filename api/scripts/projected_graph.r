@@ -14,7 +14,7 @@ setwd(work_dir)
 
 points_file = paste("projected", index, "points.npy", sep="_")
 points = npyLoad(points_file)
-diagram = ripsDiag(points, maxdimension, maxscale, library = "GUDHI")
+diagram = ripsDiag(points, dist="euclidean", maxdimension, maxscale, library = "GUDHI")
 
 diagMaxScale = ceiling(maxscale * 1.2)
 image_file = paste("projected", index, "diagram.png", sep="_")
