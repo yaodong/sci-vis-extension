@@ -23,8 +23,16 @@ export default Ember.Controller.extend({
     ],
     searching_algorithms: [
       {
-        key: 'downhill',
-        text: 'downhill'
+        key: 'nelder-mead',
+        text: 'Nelder-Mead algorithm'
+      },
+      {
+        key: 'downhill-simplex',
+        text: 'downhill simplex algorithm'
+      },
+      {
+        key: 'basin-hopping',
+        text: 'basin-hopping algorithm'
       }
     ]
   },

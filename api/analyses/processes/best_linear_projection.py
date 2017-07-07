@@ -1,5 +1,5 @@
 from analyses.processes import Process
-from scipy.optimize import minimize
+from scipy import optimize
 from random import random, randint
 from os import path
 from copy import deepcopy
@@ -21,6 +21,7 @@ class BestLinearProjection(Process):
 
         self.graph_scaling_dimentions = int(self.params.get('scaling_dimension'))
         self.searching_max_iterations = int(self.params.get('max_iterations'))
+        self.searching_algorithm = self.params.get('searching_algorithm')
 
         self.points = self.convert_to_points(
             method='MDS',
@@ -43,15 +44,9 @@ class BestLinearProjection(Process):
 
         def objective_func(guess):
 
-            print('=== norm / ====')
-            print(np.linalg.norm(process.state_b1))
-            print(np.linalg.norm(process.state_b2))
-            print('=== norm \ ====')
-
             process.iteration += 1
 
             logging.info('iteration %i' % process.iteration)
-            logging.info('guess %s' % guess)
 
             last_b1 = process.state_b1
             last_b2 = process.state_b2
@@ -77,14 +72,23 @@ class BestLinearProjection(Process):
             process.state_b1 = b1
             process.state_b2 = b2
 
+            # write result
+            self.contexts.write('interation.%i' % process.iteration, {
+                'b1': list(b1),
+                'b2': list(b2),
+                'guess': list(guess),
+                'distance': float(distance)
+            })
+
             return distance
 
-        #minimize(objective_func, guess, method='Nelder-Mead')
-
-        step_size = 5 * pow(1.5, self.graph_scaling_dimentions - 3)
-
-        from scipy.optimize import basinhopping
-        basinhopping(objective_func, guess, stepsize=step_size)
+        if self.searching_algorithm == 'nelder-mead':
+            optimize.minimize(objective_func, guess, method='Nelder-Mead')
+        elif self.searching_algorithm == 'basin-hopping':
+            step_size = pow(5, self.graph_scaling_dimentions - 3)
+            optimize.basinhopping(objective_func, guess, stepsize=step_size)
+        elif self.searching_algorithm == 'downhill-simplex':
+            optimize.fmin(objective_func, guess, xtol=0.1)
 
     def process_base_graph(self):
         scripts.r('base_graph.r', self.work_dir)
