@@ -12,4 +12,12 @@ def best_linear_projection_iteration_chart(analysis):
     iterations = analysis.contexts\
                          .query().filter(name__startswith='iteration.').all()
 
-    return map(lambda i: i.value, iterations)
+    iterations = list(map(lambda i: i.value, iterations))
+
+    best = min(iterations, key=lambda i: i['distance'])
+
+    return {
+        'best': best,
+        'iterations': iterations,
+        'last': iterations[-1]
+    }

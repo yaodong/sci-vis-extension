@@ -5,7 +5,7 @@ export default Ember.Component.extend({
   store: Ember.inject.service(),
   ajax: Ember.inject.service(),
 
-  didRender() {
+  didInsertElement() {
     this._super(...arguments);
 
     this.get('ajax').post(config.APP.API_HOST + '/api/analyses/query', {
@@ -17,12 +17,11 @@ export default Ember.Component.extend({
       this.set('data', response);
       this.plot();
     });
-
   },
 
   plot() {
     const d3 = window.d3;
-    const data = this.get('data');
+    const data = this.get('data.iterations');
 
     // ref: https://bl.ocks.org/d3noob/c506ac45617cf9ed39337f99f8511218
 

@@ -1,14 +1,34 @@
 <div class="card">
   <div class="card__title">
-    result
+    Latest Result
   </div>
   <div class="card__content padding-md">
-    <div class="row">
-      <div class="col-sm-4">
-      </div>
-      <div class="col-sm-4">
-      </div>
-    </div>
+    <table class="table">
+      <tr>
+        <th>Min Distance</th>
+        <th>Total Iterations</th>
+      </tr>
+      <tr>
+        <td>{{data.best.distance}}</td>
+        <td>{{data.last.index}}</td>
+      </tr>
+    </table>
+    <table class="table">
+      <tr>
+        <th>Best Projection Basis 1</th>
+      </tr>
+      <tr>
+        <td><textarea class="form-control">[{{data.best.b1}}]</textarea></td>
+      </tr>
+    </table>
+    <table class="table">
+      <tr>
+        <th>Best Projection Basis 2</th>
+      </tr>
+      <tr>
+        <td><textarea class="form-control">[{{data.best.b2}}]</textarea></td>
+      </tr>
+    </table>
   </div>
 </div>
 
