@@ -68,7 +68,7 @@ export default Ember.Component.extend({
         'function': 'sphere_projection_data'
       }
     }).then((response) => {
-      this.set('sphereData', response['is_ready']);
+      this.set('sphereData', response);
     });
   },
 
