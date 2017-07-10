@@ -73,7 +73,8 @@ class BestLinearProjection(Process):
             process.state_b2 = b2
 
             # write result
-            self.contexts.write('interation.%i' % process.iteration, {
+            self.contexts.write('iteration.%i' % process.iteration, {
+                'index': process.iteration,
                 'b1': list(b1),
                 'b2': list(b2),
                 'guess': list(guess),
@@ -185,8 +186,6 @@ class BestLinearProjection(Process):
                 break
 
         distance = bottleneck
-
-        self.contexts.write('projected.result.%i' % index, distance)
 
         logging.info('distance %s' % distance)
         return distance
