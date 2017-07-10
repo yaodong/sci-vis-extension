@@ -7,7 +7,7 @@
   {{#each model as |dataset|}}
     <div class="row dataset-index__item">
       <div class="col-xs-9">
-        {{dataset.name}}
+        {{#link-to "datasets.view" dataset.id}}{{dataset.name}}{{/link-to}}
       </div>
       <div class="col-xs-3">
         {{#link-to "analyses.new" (query-params dataset_id=dataset.id) class="btn btn-default"}}New Analysis{{/link-to}}

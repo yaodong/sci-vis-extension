@@ -26,7 +26,7 @@ SECRET_KEY = '-#*648%079#_6qe%io*jzr*rwil=sv533i#v8@ww4vkt4@yy&o'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 DATA_DIR = None
 
@@ -40,12 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'django_celery_results',
     'django_celery_beat',
     'corsheaders',
     'datasets',
     'analyses',
-    'queries',
 ]
 
 MIDDLEWARE = [
@@ -132,19 +132,6 @@ JSON_API_PLURALIZE_TYPES = True
 
 REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
-
-    'EXCEPTION_HANDLER': 'rest_framework_json_api.exceptions.exception_handler',
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework_json_api.pagination.PageNumberPagination',
-    'DEFAULT_PARSER_CLASSES': (
-        'rest_framework_json_api.parsers.JSONParser',
-        'rest_framework.parsers.FormParser',
-        'rest_framework.parsers.MultiPartParser'
-    ),
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework_json_api.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ),
-    'DEFAULT_METADATA_CLASS': 'rest_framework_json_api.metadata.JSONAPIMetadata',
 }
 
 CORS_ORIGIN_ALLOW_ALL = True

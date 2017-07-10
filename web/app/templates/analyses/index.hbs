@@ -8,10 +8,9 @@
     <div class="row analysis-index__item">
       <div class="col-sm-8 analysis-index__item-title">
         {{#link-to "analyses.view" analysis.id}}{{analysis.title}}{{/link-to}}
-        <div class="analysis-index__item-info">dataset: {{analysis.dataset.title}}</div>
+        <div class="analysis-index__item-info">dataset: {{#link-to "datasets.view" analysis.dataset.id}}{{analysis.dataset.name}}{{/link-to}}</div>
       </div>
       <div class="col-sm-4 analysis-index__item-preview">
-        preview
       </div>
     </div>
   {{/each}}

@@ -23,7 +23,13 @@ class SphereEvenlySampling(Process):
         super().__init__(analysis)
 
         self.dataset_is_graph = (self.analysis.dataset.format == 'graph')
-        self.points = self.convert_to_points()
+
+        if self.dataset_is_graph:
+            self.points = self.convert_to_points('MDS')
+        else:
+            dataset_file_name = self.contexts.read('path.dataset_file')
+            dataset_path = path.join(self.work_dir, dataset_file_name)
+            self.points = np.genfromtxt(dataset_path, delimiter=',')
 
         if self.dataset_is_graph:
             self.base_graph = self.read_base_graph()
@@ -33,6 +39,8 @@ class SphereEvenlySampling(Process):
     def run(self):
         self.make_base_preview_image()
         self.run_base_r()
+
+        self.contexts.write("preview.is_ready", True)
 
         max_scale = self.compute_r_max_scale()
         directions = self.generate_random_directions()
@@ -69,31 +77,6 @@ class SphereEvenlySampling(Process):
         size = int(self.params.get('sample_size'))
         self.contexts.write('samples.size', size)
         return sphere_random_directions(size)
-
-    def convert_to_points(self):
-        logging.info('create points file')
-
-        dataset_file_name = self.contexts.read('path.dataset_file')
-
-        dataset_path = path.join(self.work_dir, dataset_file_name)
-        points_path = path.join(self.work_dir, 'base_points')
-
-        if self.dataset_is_graph:
-            from analyses.utils.graph_scaling import graph_scaling
-
-            points = graph_scaling(
-                dataset_path,
-                points_path,
-                "MDS",  # TODO self.params['scaling_method'],
-                self.FIXED_DIMENSION
-            )
-        else:
-            points = np.genfromtxt(dataset_path, delimiter=',')
-
-        np.save(points_path, points)
-        points_path += '.npy'
-        self.contexts.write('path.points_file', points_path)
-        return points
 
     def compute_sample(self, index, longitude, latitude, max_scale):
         logging.info('compute direction %i' % index)

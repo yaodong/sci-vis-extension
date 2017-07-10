@@ -1,10 +1,12 @@
 from celery import shared_task
 from analyses.models import Analysis
-from analyses.processes import sphere_evenly_sampling
+from analyses.processes.sphere_evenly_sampling import SphereEvenlySampling
+from analyses.processes.best_linear_projection import BestLinearProjection
 import logging
 
 PROCESS_CLASSES = {
-    'sphere_evenly_sampling': sphere_evenly_sampling.SphereEvenlySampling
+    'sphere_evenly_sampling': SphereEvenlySampling,
+    'search_best_linear_projection': BestLinearProjection
 }
 
 

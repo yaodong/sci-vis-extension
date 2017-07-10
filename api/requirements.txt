@@ -1,6 +1,5 @@
-Django==1.10.5
+djangorestframework==3.6.3
 django-cors-headers==2.0.0
-djangorestframework==3.5.3
 django-celery-results==1.0.1
 django-celery-beat==1.0.1
 requests==2.13.0
@@ -11,4 +10,4 @@ matplotlib==2.0.0
 scipy==0.19.0
 sympy==1.0
 scikit-learn==0.18.1
-djangorestframework-jsonapi==2.2.0
+django-filter==1.0.4

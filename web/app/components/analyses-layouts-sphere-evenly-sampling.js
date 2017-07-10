@@ -2,27 +2,46 @@ import Ember from 'ember';
 import Config from 'webapp/config/environment';
 
 export default Ember.Component.extend({
-
   store: Ember.inject.service(),
+  ajax: Ember.inject.service(),
 
   init() {
     this._super(...arguments);
     this.refreshSphereData();
+    this.fetchPreviewData();
   },
 
   analysis: null,
+
+  sphereData: null,
+
+  previewIsReady: null,
 
   imageBaseUrl: Ember.computed("analysis", function () {
     return Config.APP.API_HOST + "/static/analyses/" + this.get("analysis.id");
   }),
 
-  images: Ember.computed("analysis", "imageBaseUrl", function () {
-    return {
-      preview: this.get("imageBaseUrl") + "/base_preview.gif",
-      persistence: null,
-      projection: null
-    };
+  images: Ember.computed("previewIsReady", "analysis", "imageBaseUrl", function () {
+    if (this.get("previewIsReady")) {
+      return {
+        preview: this.get("imageBaseUrl") + "/base_preview.gif",
+        persistence: this.get("imageBaseUrl") + '/base_diagram.png'
+      };
+    } else {
+      return {preview: null, persistence: null};
+    }
   }),
+
+  fetchPreviewData() {
+    this.get('ajax').post(Config.APP.API_HOST + '/api/analyses/query', {
+      data: {
+        'analysis_id': this.get('analysis.id'),
+        'function': 'sphere_is_ready'
+      }
+    }).then((response) => {
+      this.set('previewIsReady', response['is_ready']);
+    });
+  },
 
   projectedImages: Ember.computed("currentDirectionData", "imageBaseUrl", function () {
     const index = this.get("currentDirectionData.index");
@@ -33,7 +52,7 @@ export default Ember.Component.extend({
       diagram: imageUrl + "diagram.png"
     };
 
-    if (this.get('analysis.dataset.format') == 'graph') {
+    if (this.get('analysis.dataset.format') === 'graph') {
       images.graph = imageUrl + "preview_graph.png";
     } else {
       images.graph = null;
@@ -42,11 +61,14 @@ export default Ember.Component.extend({
     return images;
   }),
 
-  sphereData: null,
-
   refreshSphereData() {
-    this.get('store').findRecord('query', `${this.get('analysis.id')}--project-directions`).then((q) => {
-      this.set('sphereData', q.get('content'));
+    this.get('ajax').post(Config.APP.API_HOST + '/api/analyses/query', {
+      data: {
+        'analysis_id': this.get('analysis.id'),
+        'function': 'sphere_projection_data'
+      }
+    }).then((response) => {
+      this.set('sphereData', response['is_ready']);
     });
   },
 

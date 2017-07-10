@@ -12,6 +12,9 @@
 
   {{#if (eq model.params.process "sphere_evenly_sampling")}}
     {{analyses-layouts-sphere-evenly-sampling analysis=model}}
+  {{else if (eq model.params.process "search_best_linear_projection")}}
+    {{analyses-layouts-best-linear-projection analysis=model}}
   {{/if}}
+
 
 </div>

@@ -3,6 +3,7 @@ import requests
 from analyses.models import ContextHandler
 from os import path, makedirs
 from shutil import rmtree
+import numpy as np
 
 
 class Process:
@@ -72,3 +73,25 @@ class Process:
 
     def remove_contexts(self):
         self.analysis.contexts.remove_all()
+
+    def convert_to_points(self, method='MDS', dimension=3):
+        logging.info('create points file')
+
+        dataset_file_name = self.contexts.read('path.dataset_file')
+
+        dataset_path = path.join(self.work_dir, dataset_file_name)
+        points_path = path.join(self.work_dir, 'base_points')
+
+        from analyses.utils.graph_scaling import graph_scaling
+
+        points = graph_scaling(
+            dataset_path,
+            points_path,
+            method,
+            dimension
+        )
+
+        np.save(points_path, points)
+        points_path += '.npy'
+        self.contexts.write('path.points_file', points_path)
+        return points

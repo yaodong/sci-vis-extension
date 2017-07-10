@@ -1,0 +1,62 @@
+<div class="card">
+  <div class="card__title">
+    Latest Result
+  </div>
+  <div class="card__content padding-md">
+    <table class="table">
+      <tr>
+        <th>Min Distance</th>
+        <th>Total Iterations</th>
+      </tr>
+      <tr>
+        <td>{{data.best.distance}}</td>
+        <td>{{data.last.index}}</td>
+      </tr>
+    </table>
+    <table class="table">
+      <tr>
+        <th>Best Projection Basis 1</th>
+      </tr>
+      <tr>
+        <td><textarea class="form-control">[{{data.best.b1}}]</textarea></td>
+      </tr>
+    </table>
+    <table class="table">
+      <tr>
+        <th>Best Projection Basis 2</th>
+      </tr>
+      <tr>
+        <td><textarea class="form-control">[{{data.best.b2}}]</textarea></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<style> /* set the CSS */
+
+  .line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2px;
+  }
+
+  .grid line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+  }
+
+  .grid path {
+    stroke-width: 0;
+  }
+
+</style>
+
+<div class="card">
+  <div class="card__title">
+    Iterations
+  </div>
+  <div class="card__content padding-md">
+    <svg id="com-iteration-chart"></svg>
+  </div>
+</div>
