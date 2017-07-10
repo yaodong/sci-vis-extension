@@ -2,8 +2,8 @@ import Ember from 'ember';
 import Config from 'webapp/config/environment';
 
 export default Ember.Component.extend({
-
   store: Ember.inject.service(),
+  ajax: Ember.inject.service(),
 
   init() {
     this._super(...arguments);
@@ -33,8 +33,13 @@ export default Ember.Component.extend({
   }),
 
   fetchPreviewData() {
-    this.get('store').findRecord('query', `${this.get('analysis.id')}--preview-data`).then((q) => {
-      this.set('previewIsReady', q.get('content'));
+    this.get('ajax').post(Config.APP.API_HOST + '/api/analyses/query', {
+      data: {
+        'analysis_id': this.get('analysis.id'),
+        'function': 'sphere_is_ready'
+      }
+    }).then((response) => {
+      this.set('previewIsReady', response['is_ready']);
     });
   },
 
@@ -47,7 +52,7 @@ export default Ember.Component.extend({
       diagram: imageUrl + "diagram.png"
     };
 
-    if (this.get('analysis.dataset.format') == 'graph') {
+    if (this.get('analysis.dataset.format') === 'graph') {
       images.graph = imageUrl + "preview_graph.png";
     } else {
       images.graph = null;
@@ -57,8 +62,13 @@ export default Ember.Component.extend({
   }),
 
   refreshSphereData() {
-    this.get('store').findRecord('query', `${this.get('analysis.id')}--project-directions`).then((q) => {
-      this.set('sphereData', q.get('content'));
+    this.get('ajax').post(Config.APP.API_HOST + '/api/analyses/query', {
+      data: {
+        'analysis_id': this.get('analysis.id'),
+        'function': 'sphere_projection_data'
+      }
+    }).then((response) => {
+      this.set('sphereData', response['is_ready']);
     });
   },
 
