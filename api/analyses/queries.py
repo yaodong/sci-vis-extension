@@ -15,11 +15,12 @@ def best_linear_projection_iteration_chart(analysis):
     iterations = list(map(lambda i: i.value, iterations))
 
     best = min(iterations, key=lambda i: i['distance'])
+    last = max(iterations, key=lambda i: i['index'])
 
     return {
         'best': best,
         'iterations': iterations,
-        'last': iterations[-1]
+        'last': last
     }
 
 
