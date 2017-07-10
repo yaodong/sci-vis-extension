@@ -26,7 +26,7 @@ SECRET_KEY = '-#*648%079#_6qe%io*jzr*rwil=sv533i#v8@ww4vkt4@yy&o'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 DATA_DIR = None
 
@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'datasets',
     'analyses',
-    'queries',
 ]
 
 MIDDLEWARE = [
