@@ -1,0 +1,30 @@
+version: '3'
+services:
+  nginx:
+    image: sci/tda-nginx
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - 8080:80
+
+  frontend:
+    image: sci/tda-frontend
+
+  backend:
+    image: sci/tda-backend
+    volumes:
+      - ./data:/srv/data
+    depends_on:
+      - db
+      - cache
+
+  db:
+    image: postgres:9.6.8
+    environment:
+      POSTGRES_USER: webapp
+      POSTGRES_DB: webapp
+      POSTGRES_PASSWORD: webapp
+
+  cache:
+    image: redis:3.2.11
