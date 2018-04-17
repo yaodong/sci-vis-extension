@@ -1,7 +1,7 @@
 version: '3'
 services:
   nginx:
-    image: sci/tda-nginx
+    build: ./nginx
     depends_on:
       - frontend
       - backend
@@ -9,10 +9,10 @@ services:
       - 8080:80
 
   frontend:
-    image: sci/tda-frontend
+    build: ./frontend
 
   backend:
-    image: sci/tda-backend
+    build: ./backend
     volumes:
       - ./data:/srv/data
     depends_on:
